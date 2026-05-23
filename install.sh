@@ -2,6 +2,29 @@
 # Установка веб-панели: генерирует systemd-юнит из шаблона (без личных данных в Git)
 set -euo pipefail
 
+# Флаг: только установить юнит и конфиг, без запуска сервиса
+NO_START=0
+
+usage() {
+	echo "Использование: sudo ./install.sh [--no-start]" >&2
+	echo "  --no-start  настроить config.local.env и не запускать сервис" >&2
+}
+
+for arg in "$@"; do
+	case "${arg}" in
+	--no-start) NO_START=1 ;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		echo "Неизвестный аргумент: ${arg}" >&2
+		usage
+		exit 1
+		;;
+	esac
+done
+
 if [[ "${EUID}" -ne 0 ]]; then
 	echo "Запустите: sudo ./install.sh" >&2
 	exit 1
@@ -25,6 +48,9 @@ if [[ ! -f "${CONFIG_LOCAL}" ]]; then
 PANEL_USER=${INSTALL_USER}
 INSTALL_DIR=${SCRIPT_DIR}
 PANEL_PORT=8765
+PANEL_METRICS_INTERVAL=0.5
+PANEL_LOG_FILE=${INSTALL_HOME}/.nout-panel/log.txt
+PANEL_LOG_MAX_MB=2
 PANEL_FILE_ROOTS=${INSTALL_HOME}:/mnt
 PANEL_AGENT_WORKSPACE=$(dirname "${SCRIPT_DIR}")
 EOF
@@ -38,10 +64,18 @@ source "${CONFIG_LOCAL}"
 
 chmod +x "${INSTALL_DIR}/app.py"
 
-# Лог-файл для отладки (доступ только пользователю панели)
-LOG_FILE="/var/log/nout-panel.log"
+# Лог-файл с ротацией (путь и размер — в config.local.env)
+if [[ -z "${PANEL_LOG_FILE:-}" ]]; then
+	PANEL_HOME="$(getent passwd "${PANEL_USER}" | cut -d: -f6)"
+	LOG_FILE="${PANEL_HOME:-/home/${PANEL_USER}}/.nout-panel/log.txt"
+else
+	LOG_FILE="${PANEL_LOG_FILE}"
+fi
+LOG_DIR="$(dirname "${LOG_FILE}")"
+mkdir -p "${LOG_DIR}"
 touch "${LOG_FILE}"
-chown "${PANEL_USER}:${PANEL_USER}" "${LOG_FILE}"
+chown -R "${PANEL_USER}:${PANEL_USER}" "${LOG_DIR}"
+chmod 750 "${LOG_DIR}"
 chmod 640 "${LOG_FILE}"
 
 # Копия настроек для systemd (без секретов)
@@ -57,10 +91,23 @@ chmod 0644 "${UNIT}"
 
 systemctl daemon-reload
 systemctl enable nout-panel.service
+
+PORT="${PANEL_PORT:-8765}"
+
+if [[ "${NO_START}" -eq 1 ]]; then
+	echo ""
+	echo "Установка завершена (--no-start). Сервис не запущен."
+	echo "Отредактируйте ${CONFIG_LOCAL}, затем:"
+	echo "  sudo cp ${CONFIG_LOCAL} /etc/nout-panel/env"
+	echo "  sudo systemctl start nout-panel"
+	echo ""
+	echo "Логи после запуска: tail -f ${LOG_FILE}"
+	exit 0
+fi
+
 systemctl restart nout-panel.service
 
 sleep 0.5
-PORT="${PANEL_PORT:-8765}"
 if curl -fsS "http://127.0.0.1:${PORT}/api/status" >/dev/null; then
 	echo "Панель отвечает локально."
 else

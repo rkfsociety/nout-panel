@@ -10,7 +10,6 @@ Group=@PANEL_USER@
 WorkingDirectory=@INSTALL_DIR@
 ExecStart=/usr/bin/python3 @INSTALL_DIR@/app.py
 EnvironmentFile=-/etc/nout-panel/env
-Environment=PANEL_LOG_FILE=/var/log/nout-panel.log
 # Авто-перезапуск после сбоя процесса
 Restart=on-failure
 RestartSec=5

@@ -14,11 +14,21 @@ from typing import Any, Callable
 
 from panel_log import setup_logging
 
-# Логгер пишет в /var/log/nout-panel.log
 _log = setup_logging("nout-panel.metrics")
 
-# Интервал обновления кэша (сек)
-COLLECT_INTERVAL = 0.5
+
+def _metrics_interval() -> float:
+    """Интервал обновления кэша из config.local.env (PANEL_METRICS_INTERVAL)."""
+    raw = os.environ.get("PANEL_METRICS_INTERVAL", "0.5")
+    try:
+        val = float(raw)
+    except ValueError:
+        val = 0.5
+    return max(0.1, min(val, 60.0))
+
+
+# Интервал обновления кэша (сек) — задаётся в config.local.env
+COLLECT_INTERVAL = _metrics_interval()
 
 # Точек истории (~10 мин при интервале 0.5 с)
 HISTORY_MAXLEN = 1200

@@ -26,9 +26,11 @@ git clone https://github.com/rkfsociety/nout-panel.git
 cd nout-panel
 chmod +x install.sh app.py
 sudo ./install.sh
+# Сначала настроить порт и интервал без запуска:
+sudo ./install.sh --no-start
 ```
 
-Скрипт создаст **локальный** `config.local.env` (не в Git) и зарегистрирует сервис `nout-panel`.
+Скрипт создаст **локальный** `config.local.env` (не в Git) и зарегистрирует сервис `nout-panel`. Порт (`PANEL_PORT`), интервал метрик (`PANEL_METRICS_INTERVAL`) и путь к логам (`PANEL_LOG_FILE`) меняются в этом файле без правки кода.
 
 Откройте в браузере с другого ПК в той же сети:
 
@@ -43,16 +45,16 @@ IP покажет вывод `install.sh` или `hostname -I` на ноуте.
 ```bash
 sudo systemctl status nout-panel
 sudo systemctl restart nout-panel
-# Логи (файл, не journal):
-sudo tail -f /var/log/nout-panel.log
+# Логи (файл, не journal; путь — PANEL_LOG_FILE в config.local.env):
+tail -f ~/.nout-panel/log.txt
 ```
 
-После обновления кода переустановите юнит: `sudo ./install.sh` (создаёт лог-файл, `Restart=on-failure`).
+После обновления кода переустановите юнит: `sudo ./install.sh` (создаёт каталог логов, `Restart=on-failure`).
 
 ## Надёжность
 
 - **systemd**: `Restart=on-failure` — сервис поднимается после сбоя
-- **Логи**: `/var/log/nout-panel.log` (ротация ~2 МБ × 3 файла)
+- **Логи**: `~/.nout-panel/log.txt` (ротация 1–5 МБ, по умолчанию 2 МБ × 3 архива)
 - **Датчики**: нет батареи/температуры на ПК — в UI показывается **N/A**, панель не падает
 
 ## Управление системой (`/remote`)
