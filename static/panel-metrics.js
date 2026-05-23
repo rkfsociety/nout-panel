@@ -36,7 +36,7 @@
     }
     root.innerHTML = disks.map(function (d) {
       return (
-        '<div class="disk-item" title="' + esc(d.device) + ' · ' + d.free_gb + ' ГБ свободно">' +
+        '<div class="disk-chip" title="' + esc(d.device) + ' · ' + d.free_gb + ' ГБ свободно">' +
         '<span class="disk-name">' + esc(d.mount) + '</span>' +
         '<span class="disk-pct">' + d.percent + '%</span>' +
         '<div class="bar mini"><div class="bar-fill ' + barClass(d.percent) +

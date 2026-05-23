@@ -134,7 +134,7 @@ body.page-shell.page-chat .app-shell {
 @media (min-width: 768px) {
   body.page-shell .side-nav {
     align-self: flex-start;
-    max-height: calc(100dvh - 8rem);
+    max-height: calc(100dvh - 5rem);
     overflow-y: auto;
   }
 }

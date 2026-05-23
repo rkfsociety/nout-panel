@@ -3,27 +3,28 @@
   var HEADER_HTML =
     '<header class="site-header" id="panel-site-header">' +
     '<div class="metrics-bar">' +
-    '<div class="metrics-title-row">' +
+    '<div class="metrics-row">' +
+    '<div class="metrics-brand">' +
     '<h1 id="host-title">Nout Panel</h1>' +
     '<span class="badge" id="status">…</span>' +
     '<span class="metrics-time" id="updated">—</span>' +
     '</div>' +
     '<div class="stat-row">' +
-    '<div class="stat"><span class="stat-lbl">CPU</span>' +
+    '<div class="stat-chip"><span class="stat-lbl">CPU</span>' +
     '<span class="stat-val" id="cpu-val">—</span>' +
     '<div class="bar mini"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div></div>' +
-    '<div class="stat"><span class="stat-lbl">ОЗУ</span>' +
+    '<div class="stat-chip"><span class="stat-lbl">ОЗУ</span>' +
     '<span class="stat-val" id="ram-val">—</span>' +
     '<div class="bar mini"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div></div>' +
-    '<div class="stat"><span class="stat-lbl">Load</span>' +
+    '<div class="stat-chip"><span class="stat-lbl">Ld</span>' +
     '<span class="stat-val" id="load-val">—</span>' +
     '<div class="bar mini"><div class="bar-fill" id="load-bar" style="width:0%"></div></div></div>' +
     '</div>' +
-    '<div class="metrics-extra">' +
+    '<div class="metrics-tail">' +
     '<div id="temps" class="temps-inline"></div>' +
     '<div id="disks" class="disks-row">…</div>' +
     '<p class="panel-meta" id="panel-process" hidden></p>' +
-    '</div></div></header>';
+    '</div></div></div></header>';
 
   var FOOTER_HTML =
     '<footer class="site-footer" id="panel-site-footer">' +
