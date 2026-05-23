@@ -92,11 +92,18 @@ install -d -m 0755 /etc/nout-panel
 install -m 0644 "${CONFIG_LOCAL}" /etc/nout-panel/env
 
 # Перезапуск панели из веб-UI (sudo без пароля)
+SYSTEMCTL_BIN="$(command -v systemctl)"
+CP_BIN="$(command -v cp)"
+if [[ -z "${SYSTEMCTL_BIN}" || -z "${CP_BIN}" ]]; then
+	echo "Нужны systemctl и cp в PATH" >&2
+	exit 1
+fi
 SUDOERS_FILE="/etc/sudoers.d/nout-panel-${PANEL_USER}"
 cat >"${SUDOERS_FILE}" <<EOF
-# nout-panel: перезапуск сервиса из веб-UI (${PANEL_USER})
-${PANEL_USER} ALL=(root) NOPASSWD: /usr/bin/systemctl restart nout-panel.service, /usr/bin/systemctl restart nout-panel
-${PANEL_USER} ALL=(root) NOPASSWD: /usr/bin/cp ${INSTALL_DIR}/config/local.env /etc/nout-panel/env
+# nout-panel: перезапуск и применение конфига из веб-UI (${PANEL_USER})
+${PANEL_USER} ALL=(root) NOPASSWD: ${SYSTEMCTL_BIN} restart nout-panel.service, ${SYSTEMCTL_BIN} restart nout-panel
+${PANEL_USER} ALL=(root) NOPASSWD: ${CP_BIN} ${INSTALL_DIR}/config/local.env /etc/nout-panel/env
+${PANEL_USER} ALL=(root) NOPASSWD: ${CP_BIN} ${INSTALL_DIR}/config.local.env /etc/nout-panel/env
 EOF
 chmod 0440 "${SUDOERS_FILE}"
 if ! visudo -cf "${SUDOERS_FILE}" >/dev/null 2>&1; then

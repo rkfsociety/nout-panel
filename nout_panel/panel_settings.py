@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from collections import deque
 from pathlib import Path
@@ -157,8 +158,9 @@ def apply_config() -> dict[str, Any]:
     if not _CONFIG_LOCAL.is_file():
         return {"ok": False, "error": f"Нет файла {_CONFIG_LOCAL}"}
     try:
+        cp_bin = shutil.which("cp") or "/usr/bin/cp"
         proc = subprocess.run(
-            ["sudo", "-n", "/usr/bin/cp", str(_CONFIG_LOCAL), str(_CONFIG_SYSTEM)],
+            ["sudo", "-n", cp_bin, str(_CONFIG_LOCAL), str(_CONFIG_SYSTEM)],
             capture_output=True,
             text=True,
             timeout=15,
@@ -169,7 +171,7 @@ def apply_config() -> dict[str, Any]:
         hint = (proc.stderr or proc.stdout or "").strip()[:300]
         return {
             "ok": False,
-            "error": hint or "Нет прав на cp. Выполните: sudo ./install.sh",
+            "error": hint or "Нет прав на cp. На ноуте: sudo ./install.sh",
         }
     _log.warning("config applied to %s", _CONFIG_SYSTEM)
     return {
