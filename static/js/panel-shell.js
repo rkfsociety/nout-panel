@@ -24,8 +24,9 @@
     '<div class="metrics-tail">' +
     '<div id="temps" class="temps-inline"></div>' +
     '<div id="disks" class="disks-row">…</div>' +
+    '</div></div>' +
     '<p class="panel-meta" id="panel-process" hidden></p>' +
-    '</div></div></div></header>';
+    '</div></header>';
 
   var FOOTER_HTML =
     '<footer class="site-footer" id="panel-site-footer">' +

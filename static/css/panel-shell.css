@@ -238,14 +238,17 @@ body.page-shell {
   color: var(--shell-muted);
 }
 
+/* Строка про процесс панели — на всю ширину, без обрезки */
 .panel-meta {
-  margin: 0;
+  margin: 0.15rem 0 0;
+  padding-top: 0.2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
   font-size: calc(0.58rem + var(--header-font-plus));
   color: var(--shell-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 14rem;
+  line-height: 1.4;
+  white-space: normal;
+  word-break: break-word;
+  width: 100%;
 }
 
 .panel-meta[hidden] { display: none; }
