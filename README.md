@@ -18,6 +18,18 @@
 - Python 3.10+
 - `curl` (для проверки при установке)
 
+## Smoke-тест
+
+Проверка, что запущенная панель отвечает (после `systemctl start` или `./install.sh`):
+
+```bash
+python3 tests/smoke_test.py
+# другой порт: PANEL_PORT=9000 python3 tests/smoke_test.py
+# удалённый хост: PANEL_URL=http://192.168.0.10:8765 python3 tests/smoke_test.py
+```
+
+Код выхода `0` — всё ок, `1` — есть ошибки.
+
 ## Установка
 
 ```bash
