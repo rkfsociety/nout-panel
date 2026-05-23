@@ -19,11 +19,8 @@
       --bot: #1a2332;
     }
     * { box-sizing: border-box; }
-    body {
+    body.page-chat {
       margin: 0;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
       font-family: system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
@@ -32,10 +29,13 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      max-width: 48rem;
-      margin: 0 auto;
       width: 100%;
       min-height: 0;
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .app-main .chat-wrap {
+      padding: 0;
     }
     .chat-head {
       padding: .75rem 1rem;
@@ -103,13 +103,10 @@
     #chat-send:disabled { opacity: .5; }
   </style>
 </head>
-<body>
-  <nav class="page-nav" aria-label="Разделы">
-    <a href="/" data-page>Мониторинг</a>
-    <a href="/remote" data-page>Управление</a>
-    <a href="/chat" data-page>Чат</a>
-    <a href="/settings" data-page>Настройки</a>
-  </nav>
+<body class="page-chat">
+  <div class="app-shell app-shell-chat">
+    <div data-nav-mount></div>
+    <main class="app-main">
   <div class="chat-wrap">
     <div class="chat-head">
       <h1>Чат с Cursor Agent</h1>
@@ -121,6 +118,8 @@
       <textarea id="chat-input" rows="1" placeholder="Задача для ноута…"></textarea>
       <button type="button" id="chat-send">→</button>
     </div>
+  </div>
+    </main>
   </div>
 
   <script src="/page-nav.js"></script>

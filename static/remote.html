@@ -26,9 +26,8 @@
       font-family: system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 0 1rem 1.5rem;
     }
-    .wrap { max-width: 56rem; margin: 0 auto; padding-top: .75rem; }
+    .wrap { max-width: 56rem; padding: .75rem 1rem 1.5rem; }
     h1 { margin: 0; font-size: 1.25rem; }
     .sub { color: var(--muted); font-size: .85rem; margin: .2rem 0 1rem; }
     .card {
@@ -82,12 +81,9 @@
   </style>
 </head>
 <body>
-  <nav class="page-nav" aria-label="Разделы">
-    <a href="/" data-page>Мониторинг</a>
-    <a href="/remote" data-page>Управление</a>
-    <a href="/chat" data-page>Чат</a>
-    <a href="/settings" data-page>Настройки</a>
-  </nav>
+  <div class="app-shell">
+    <div data-nav-mount></div>
+    <main class="app-main">
   <div class="wrap">
     <h1>Управление</h1>
     <p class="sub">Терминал, файлы, питание, экран · LAN</p>
@@ -121,6 +117,8 @@
         <img id="screen-img" class="screen-preview" alt="" hidden>
       </div>
     </div>
+  </div>
+    </main>
   </div>
 
   <script src="/page-nav.js"></script>
