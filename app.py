@@ -18,6 +18,7 @@ from urllib.parse import parse_qs, urlparse
 
 import agent_chat
 import file_manager
+import panel_control
 import power_control
 import screen_capture
 import terminal_pty
@@ -342,6 +343,11 @@ class PanelHandler(BaseHTTPRequestHandler):
                 self._send_json(
                     power_control.run_power(body.get("action", ""), body.get("confirm", ""))
                 )
+                return
+
+            if path == "/api/panel/restart":
+                body = self._read_json()
+                self._send_json(panel_control.restart_panel(body.get("confirm", "")))
                 return
 
             self.send_error(404, "Not Found")

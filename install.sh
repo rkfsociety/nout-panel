@@ -82,6 +82,19 @@ chmod 640 "${LOG_FILE}"
 install -d -m 0755 /etc/nout-panel
 install -m 0644 "${CONFIG_LOCAL}" /etc/nout-panel/env
 
+# Перезапуск панели из веб-UI (sudo без пароля)
+SUDOERS_FILE="/etc/sudoers.d/nout-panel-${PANEL_USER}"
+cat >"${SUDOERS_FILE}" <<EOF
+# nout-panel: перезапуск сервиса из веб-UI (${PANEL_USER})
+${PANEL_USER} ALL=(root) NOPASSWD: /usr/bin/systemctl restart nout-panel.service, /usr/bin/systemctl restart nout-panel
+EOF
+chmod 0440 "${SUDOERS_FILE}"
+if ! visudo -cf "${SUDOERS_FILE}" >/dev/null 2>&1; then
+	echo "Ошибка: неверный ${SUDOERS_FILE}" >&2
+	rm -f "${SUDOERS_FILE}"
+	exit 1
+fi
+
 TEMPLATE="${SCRIPT_DIR}/systemd/nout-panel.service.template"
 UNIT="/etc/systemd/system/nout-panel.service"
 sed -e "s|@PANEL_USER@|${PANEL_USER}|g" \

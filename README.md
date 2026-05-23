@@ -61,6 +61,8 @@ sudo cp config.local.env /etc/nout-panel/env
 
 Или снова `sudo ./install.sh` (копирует конфиг и перезапускает).
 
+На главной странице есть кнопка **«Перезапустить панель»** (после `sudo ./install.sh` настраивается sudo без пароля).
+
 ```bash
 sudo systemctl status nout-panel
 sudo systemctl restart nout-panel
