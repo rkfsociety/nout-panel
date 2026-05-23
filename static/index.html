@@ -271,22 +271,23 @@
       display: inline-block;
       background: rgba(61, 214, 140, .12);
       color: var(--ok);
-      padding: .4rem .85rem;
+      padding: .2rem .55rem;
       border-radius: 999px;
-      font-size: .85rem;
-      margin-bottom: 1rem;
+      font-size: .68rem;
+      font-weight: 500;
     }
     .badge.offline { background: rgba(245, 101, 101, .12); color: var(--danger); }
-    .grid { display: grid; gap: 1rem; }
+    .grid { display: grid; gap: .65rem; }
     .card {
       background: var(--card);
       border: 1px solid var(--card-border);
-      border-radius: 14px;
+      border-radius: 12px;
       padding: 1rem 1.15rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .25);
     }
-    @media (min-width: 640px) {
-      .card { padding: 1.25rem 1.5rem; }
+    .card.metrics-compact {
+      padding: .6rem .75rem;
+      box-shadow: none;
     }
     .card h2 {
       margin: 0 0 .85rem;
@@ -295,6 +296,105 @@
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: .06em;
+    }
+    .metrics-compact h2 {
+      margin: 0 0 .5rem;
+      font-size: .68rem;
+    }
+    .metrics-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+      margin-bottom: .5rem;
+      flex-wrap: wrap;
+    }
+    .metrics-time {
+      font-size: .65rem;
+      color: var(--muted);
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .35rem .5rem;
+    }
+    @media (min-width: 480px) {
+      .stat-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .stat {
+      min-width: 0;
+    }
+    .stat-lbl {
+      display: block;
+      font-size: .62rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: .1rem;
+    }
+    .stat-val {
+      display: block;
+      font-size: .78rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: .2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stat[hidden] { display: none; }
+    .bar.mini {
+      height: 3px;
+      background: #080b10;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .bar.mini .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent);
+      transition: width .35s ease;
+    }
+    .chart-compact {
+      position: relative;
+      height: 72px;
+      margin: .45rem 0 .35rem;
+    }
+    .chart-compact-temp-wrap .chart-compact {
+      height: 48px;
+      margin-top: .25rem;
+      margin-bottom: 0;
+    }
+    .chart-compact-temp[hidden],
+    .chart-compact-temp-wrap[hidden] { display: none !important; }
+    .temps-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .25rem .45rem;
+      margin-bottom: .35rem;
+      font-size: .65rem;
+      color: var(--muted);
+    }
+    .temps-inline .t { opacity: .9; }
+    .temps-inline .na { font-style: italic; opacity: .7; }
+    .disks-compact { display: flex; flex-direction: column; gap: .3rem; }
+    .disk-row {
+      display: grid;
+      grid-template-columns: 3.5rem 2.2rem 1fr;
+      align-items: center;
+      gap: .35rem;
+      font-size: .68rem;
+    }
+    .disk-name {
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .disk-pct {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
     }
     .btn-copy {
       flex-shrink: 0;
@@ -313,61 +413,8 @@
       border-color: var(--ok);
       color: var(--ok);
     }
-    .chart-box {
-      position: relative;
-      height: min(220px, 42vw);
-      min-height: 160px;
-      margin-bottom: .75rem;
-    }
-    .chart-box:last-child { margin-bottom: 0; }
-    .chart-legend {
-      font-size: .75rem;
-      color: var(--muted);
-      margin-top: .35rem;
-    }
-    .metric { margin-bottom: 1rem; }
-    .metric:last-child { margin-bottom: 0; }
-    .metric-head {
-      display: flex;
-      justify-content: space-between;
-      gap: .5rem;
-      font-size: .9rem;
-      margin-bottom: .35rem;
-    }
-    .bar {
-      height: 8px;
-      background: #080b10;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .bar-fill {
-      height: 100%;
-      border-radius: 4px;
-      background: var(--accent);
-      transition: width .35s ease;
-    }
     .bar-fill.warn { background: var(--warn); }
     .bar-fill.danger { background: var(--danger); }
-    .disk {
-      border-top: 1px solid var(--card-border);
-      padding-top: .85rem;
-      margin-top: .85rem;
-    }
-    .disk:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
-    .disk-title { font-weight: 600; font-size: .95rem; }
-    .disk-meta { font-size: .8rem; color: var(--muted); margin: .2rem 0 .5rem; word-break: break-word; }
-    .temps { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
-    .temp-chip {
-      font-size: .8rem;
-      background: #080b10;
-      padding: .35rem .55rem;
-      border-radius: 8px;
-      color: var(--muted);
-      display: inline-flex;
-      align-items: center;
-      gap: .35rem;
-    }
-    .temp-chip.na { font-style: italic; opacity: .85; }
     .footer {
       margin-top: 1.25rem;
       font-size: .75rem;
@@ -376,10 +423,10 @@
       line-height: 1.6;
     }
     .panel-meta {
-      margin-top: .75rem;
-      font-size: .72rem;
+      margin-top: .35rem;
+      font-size: .62rem;
       color: var(--muted);
-      line-height: 1.4;
+      line-height: 1.3;
     }
     a { color: var(--accent); }
   </style>
@@ -389,59 +436,48 @@
     <main class="dashboard-main">
   <div class="wrap">
     <h1 id="host-title">Nout Panel</h1>
-    <p class="sub">Всё на одной странице · метрики и управление слева · чат справа</p>
-    <div class="badge" id="status">Подключение…</div>
+    <p class="sub">Мониторинг · управление · чат</p>
 
     <div class="grid">
-      <div class="card">
-        <h2>История</h2>
-        <div class="chart-box">
-          <canvas id="chart-load" aria-label="График CPU, ОЗУ и load"></canvas>
+      <div class="card metrics-compact">
+        <div class="metrics-head">
+          <h2>Нагрузка</h2>
+          <span class="badge" id="status">…</span>
+          <span class="metrics-time" id="updated">—</span>
         </div>
-        <p class="chart-legend">CPU · ОЗУ · Load (% от числа ядер)</p>
-        <div class="chart-box">
-          <canvas id="chart-temp" aria-label="График температуры"></canvas>
-        </div>
-        <p class="chart-legend" id="temp-legend">Температура (макс. по датчикам)</p>
-      </div>
-
-      <div class="card">
-        <h2>Сейчас</h2>
-        <div class="metric">
-          <div class="metric-head">
-            <span>CPU</span>
-            <span id="cpu-val">—</span>
+        <div class="stat-grid">
+          <div class="stat">
+            <span class="stat-lbl">CPU</span>
+            <span class="stat-val" id="cpu-val">—</span>
+            <div class="bar mini"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div>
           </div>
-          <div class="bar"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div>
-        </div>
-        <div class="metric">
-          <div class="metric-head">
-            <span>ОЗУ</span>
-            <span id="ram-val">—</span>
+          <div class="stat">
+            <span class="stat-lbl">ОЗУ</span>
+            <span class="stat-val" id="ram-val">—</span>
+            <div class="bar mini"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div>
           </div>
-          <div class="bar"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div>
-        </div>
-        <div class="metric">
-          <div class="metric-head">
-            <span>Load (1 мин)</span>
-            <span id="load-val">—</span>
+          <div class="stat">
+            <span class="stat-lbl">Load</span>
+            <span class="stat-val" id="load-val">—</span>
+            <div class="bar mini"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
           </div>
-          <div class="bar"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
-        </div>
-        <div class="metric" id="battery-metric">
-          <div class="metric-head">
-            <span>Батарея</span>
-            <span id="battery-val">—</span>
+          <div class="stat" id="battery-stat" hidden>
+            <span class="stat-lbl">Бат</span>
+            <span class="stat-val" id="battery-val">—</span>
+            <div class="bar mini"><div class="bar-fill" id="battery-bar" style="width:0%"></div></div>
           </div>
-          <div class="bar"><div class="bar-fill" id="battery-bar" style="width:0%"></div></div>
         </div>
-        <div id="temps" class="temps"></div>
+        <div class="chart-compact">
+          <canvas id="chart-load" aria-label="CPU, ОЗУ, load"></canvas>
+        </div>
+        <div class="chart-compact-temp-wrap" id="temp-chart-wrap" hidden>
+          <div class="chart-compact">
+            <canvas id="chart-temp" aria-label="Температура"></canvas>
+          </div>
+        </div>
+        <div id="temps" class="temps-inline"></div>
+        <div id="disks" class="disks-compact">…</div>
         <p class="panel-meta" id="panel-process" hidden></p>
-      </div>
-
-      <div class="card">
-        <h2>Диски</h2>
-        <div id="disks">Загрузка…</div>
       </div>
     </div>
 
@@ -546,9 +582,6 @@
       </div>
     </div>
 
-    <p class="footer">
-      <span id="updated">—</span>
-    </p>
   </div>
     </main>
 
@@ -588,6 +621,7 @@
 
     function setBar(id, pct) {
       const el = document.getElementById(id);
+      if (!el) return;
       if (pct == null || Number.isNaN(pct)) {
         el.style.width = '0%';
         el.className = 'bar-fill';
@@ -598,50 +632,17 @@
       el.className = 'bar-fill ' + barClass(v);
     }
 
-    // Копирование в буфер (телефон / десктоп)
-    async function copyText(text, btn) {
-      const label = btn.dataset.label || btn.textContent;
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch (_) {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-      }
-      btn.classList.add('copied');
-      btn.textContent = 'Скопировано';
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        btn.textContent = label;
-      }, 1600);
-    }
-
-    function bindCopyButtons() {
-      document.querySelectorAll('.btn-copy[data-copy]').forEach(btn => {
-        if (btn.dataset.bound) return;
-        btn.dataset.bound = '1';
-        btn.dataset.label = btn.textContent;
-        btn.addEventListener('click', () => copyText(btn.dataset.copy, btn));
-      });
-    }
-
     function renderDisks(disks) {
       const root = document.getElementById('disks');
       if (!disks || !disks.length) {
-        root.textContent = 'Нет данных о дисках';
+        root.innerHTML = '<span class="na">Диски: —</span>';
         return;
       }
       root.innerHTML = disks.map(d => `
-        <div class="disk">
-          <div class="disk-title">${esc(d.mount)}</div>
-          <div class="disk-meta">${esc(d.device)} · ${esc(d.fstype)} · свободно ${d.free_gb} ГБ из ${d.total_gb} ГБ</div>
-          <div class="metric-head"><span>Занято</span><span>${d.percent}%</span></div>
-          <div class="bar"><div class="bar-fill ${barClass(d.percent)}" style="width:${d.percent}%"></div></div>
+        <div class="disk-row" title="${esc(d.device)} · ${d.free_gb} ГБ свободно">
+          <span class="disk-name">${esc(d.mount)}</span>
+          <span class="disk-pct">${d.percent}%</span>
+          <div class="bar mini"><div class="bar-fill ${barClass(d.percent)}" style="width:${d.percent}%"></div></div>
         </div>
       `).join('');
     }
@@ -650,16 +651,12 @@
       const root = document.getElementById('temps');
       const sensors = (block && block.available && block.sensors) ? block.sensors : [];
       if (!sensors.length) {
-        root.innerHTML = '<span class="temp-chip na">Температура: N/A</span>';
+        root.innerHTML = '';
         return;
       }
-      root.innerHTML = sensors.map(t => {
-        const c = t.celsius != null ? t.celsius + '°C' : 'N/A';
-        const label = t.name + ': ' + c;
-        return `<span class="temp-chip"><span>${esc(t.name)}: ${esc(c)}</span>
-          <button type="button" class="btn-copy" data-copy="${esc(label)}" style="min-height:32px;min-width:auto;padding:0 .5rem" aria-label="Копировать">⎘</button></span>`;
-      }).join('');
-      bindCopyButtons();
+      root.innerHTML = sensors.map(t =>
+        `<span class="t">${esc(t.name)} ${esc(t.celsius)}°</span>`
+      ).join('');
     }
 
     function formatUptime(sec) {
@@ -683,13 +680,15 @@
     }
 
     function renderBattery(bat) {
+      const row = document.getElementById('battery-stat');
       const val = document.getElementById('battery-val');
       if (!bat || !bat.available || bat.percent == null) {
-        val.textContent = 'N/A';
+        if (row) row.hidden = true;
         setBar('battery-bar', null);
         return;
       }
-      val.textContent = bat.percent + '% · ' + (bat.status_label || bat.status || '');
+      if (row) row.hidden = false;
+      val.textContent = bat.percent + '%';
       setBar('battery-bar', bat.percent);
     }
 
@@ -709,9 +708,7 @@
       animation: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: {
-          labels: { color: chartColors.text, boxWidth: 12, font: { size: 11 } },
-        },
+        legend: { display: false },
       },
       scales: {
         x: {
@@ -788,8 +785,8 @@
       chartLoad.update('none');
 
       const hasTemp = history.some(p => p.temp_max != null);
-      document.getElementById('chart-temp').parentElement.hidden = !hasTemp;
-      document.getElementById('temp-legend').hidden = !hasTemp;
+      const tempWrap = document.getElementById('temp-chart-wrap');
+      if (tempWrap) tempWrap.hidden = !hasTemp;
       if (hasTemp && chartTemp) {
         chartTemp.data.labels = labels;
         chartTemp.data.datasets[0].data = history.map(p => p.temp_max ?? null);
@@ -817,7 +814,7 @@
         const d = await r.json();
         if (!d.ok) throw new Error(d.error || 'API error');
 
-        document.getElementById('status').textContent = 'Онлайн · ' + hostname;
+        document.getElementById('status').textContent = hostname;
         document.getElementById('status').className = 'badge';
 
         const cpu = d.cpu_percent ?? 0;
@@ -828,19 +825,17 @@
 
         document.getElementById('cpu-val').textContent = cpu + '%';
         if (mem.available === false || ram == null) {
-          document.getElementById('ram-val').textContent = 'N/A';
+          document.getElementById('ram-val').textContent = '—';
           setBar('ram-bar', null);
         } else {
-          document.getElementById('ram-val').textContent =
-            mem.ram_used_gb + ' / ' + mem.ram_total_gb + ' ГБ (' + ram + '%)';
+          document.getElementById('ram-val').textContent = ram + '%';
           setBar('ram-bar', ram);
         }
         if (ld.load_1 == null || loadPct == null) {
-          document.getElementById('load-val').textContent = 'N/A';
+          document.getElementById('load-val').textContent = '—';
           setBar('load-bar', null);
         } else {
-          document.getElementById('load-val').textContent =
-            ld.load_1 + ' · ' + ld.cpu_cores + ' ядер (' + loadPct + '%)';
+          document.getElementById('load-val').textContent = loadPct + '%';
           setBar('load-bar', Math.min(100, loadPct));
         }
 
@@ -852,8 +847,9 @@
         updateCharts(d.history);
 
         const t = new Date(d.time_utc);
-        document.getElementById('updated').textContent =
-          'Обновлено ' + t.toLocaleTimeString('ru-RU');
+        document.getElementById('updated').textContent = t.toLocaleTimeString('ru-RU', {
+          hour: '2-digit', minute: '2-digit', second: '2-digit',
+        });
       } catch (e) {
         document.getElementById('status').textContent = 'Нет связи';
         document.getElementById('status').className = 'badge offline';
