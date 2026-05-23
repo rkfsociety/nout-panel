@@ -18,7 +18,7 @@
 ## Установка
 
 ```bash
-git clone https://github.com/YOUR_USER/nout-panel.git
+git clone https://github.com/rkfsociety/nout-panel.git
 cd nout-panel
 chmod +x install.sh app.py
 sudo ./install.sh
