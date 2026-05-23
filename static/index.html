@@ -6,181 +6,30 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0a0d12">
   <title>Главная — Nout Panel</title>
+  <link rel="stylesheet" href="/panel-shell.css">
   <link rel="stylesheet" href="/page-nav.css">
   <link rel="stylesheet" href="/xterm.min.css">
   <style>
-    /* Главная: метрики в шапке, управление в теле страницы */
+    /* Стили контента главной */
     :root {
-      color-scheme: dark;
-      --bg: #0a0d12;
       --card: #141b26;
       --border: rgba(255, 255, 255, 0.06);
       --accent: #4da3ff;
       --text: #e8edf4;
       --muted: #7d8fa8;
-      --ok: #3dd68c;
-      --warn: #f0b429;
       --danger: #f56565;
+      --warn: #f0b429;
       --touch: 44px;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      -webkit-font-smoothing: antialiased;
-    }
-    .site-header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    body > .app-shell {
-      flex: 1;
-      min-height: 0;
-    }
-    .metrics-bar {
-      max-width: 56rem;
-      margin: 0 auto;
-      padding: .55rem 1rem .7rem;
-    }
-    .metrics-title-row {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: .35rem .65rem;
-    }
-    .metrics-title-row h1 {
-      margin: 0;
-      font-size: clamp(1rem, 3.5vw, 1.2rem);
-      font-weight: 600;
-      word-break: break-word;
-    }
-    .badge {
-      display: inline-block;
-      background: rgba(61, 214, 140, .12);
-      color: var(--ok);
-      padding: .15rem .5rem;
-      border-radius: 999px;
-      font-size: .65rem;
-      font-weight: 500;
-    }
-    .badge.offline {
-      background: rgba(245, 101, 101, .12);
-      color: var(--danger);
-    }
-    .metrics-time {
-      margin-left: auto;
-      font-size: .68rem;
-      color: var(--muted);
-      font-variant-numeric: tabular-nums;
-    }
-    .stat-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: .4rem .55rem;
-      margin-top: .5rem;
-    }
-    .stat { min-width: 0; }
-    .stat-lbl {
-      display: block;
-      font-size: .58rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-    .stat-val {
-      display: block;
-      font-size: .82rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      margin: .05rem 0 .15rem;
-    }
-    .bar.mini {
-      height: 3px;
-      background: #080b10;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .bar.mini .bar-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: var(--accent);
-      transition: width .35s ease;
-    }
-    .bar-fill.warn { background: var(--warn); }
-    .bar-fill.danger { background: var(--danger); }
-    .metrics-extra {
-      margin-top: .45rem;
-      display: flex;
-      flex-direction: column;
-      gap: .35rem;
-    }
-    .temps-inline {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .2rem .5rem;
-      font-size: .65rem;
-      color: var(--muted);
-    }
-    .temps-inline:empty { display: none; }
-    .disks-row {
-      display: flex;
-      flex-direction: column;
-      gap: .25rem;
-    }
-    @media (min-width: 520px) {
-      .disks-row {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: .35rem 1rem;
-      }
-      .disk-item { flex: 1 1 7.5rem; min-width: 6.5rem; max-width: 14rem; }
-    }
-    .disk-item {
-      display: grid;
-      grid-template-columns: 2.8rem 2rem 1fr;
-      align-items: center;
-      gap: .3rem;
-      font-size: .65rem;
-    }
-    .disk-name {
-      font-weight: 500;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .disk-pct {
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-      color: var(--muted);
-    }
-    .disks-row .na {
-      font-size: .65rem;
-      color: var(--muted);
-    }
-    .panel-meta {
-      margin: 0;
-      font-size: .6rem;
-      color: var(--muted);
-      line-height: 1.35;
-    }
-    .panel-meta[hidden] { display: none; }
-    .wrap { max-width: 56rem; padding: .5rem 1rem 1.5rem; }
+    .wrap { max-width: 56rem; padding: 0.5rem 1rem 1.5rem; }
     .section-title {
-      margin: 0 0 .75rem;
-      font-size: .8rem;
+      margin: 0 0 0.75rem;
+      font-size: 0.8rem;
       font-weight: 600;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: 0.06em;
     }
     .card {
       background: var(--card);
@@ -190,10 +39,10 @@
       margin-bottom: 1rem;
     }
     .card h2 {
-      margin: 0 0 .75rem;
-      font-size: .75rem;
+      margin: 0 0 0.75rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: 0.06em;
       color: var(--muted);
     }
     #terminal-wrap {
@@ -206,246 +55,83 @@
     }
     .btn-ctl {
       min-height: var(--touch);
-      padding: 0 .9rem;
+      padding: 0 0.9rem;
       border-radius: 10px;
       border: 1px solid var(--border);
       background: #0d1118;
       color: var(--text);
-      font-size: .9rem;
+      font-size: 0.9rem;
       cursor: pointer;
-      margin: .2rem .3rem .2rem 0;
+      margin: 0.2rem 0.3rem 0.2rem 0;
       touch-action: manipulation;
     }
     .btn-ctl.danger { border-color: rgba(245, 101, 101, 0.4); color: var(--danger); }
     .btn-ctl.warn { border-color: rgba(240, 180, 41, 0.4); color: var(--warn); }
-    .file-toolbar { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .5rem; }
-    .file-path { font-size: .8rem; color: var(--muted); word-break: break-all; margin-bottom: .35rem; }
+    .file-toolbar { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.5rem; }
+    .file-path { font-size: 0.8rem; color: var(--muted); word-break: break-all; margin-bottom: 0.35rem; }
     .file-list { list-style: none; padding: 0; margin: 0; max-height: 280px; overflow: auto; }
     .file-list li {
       display: flex;
       align-items: center;
-      gap: .5rem;
-      padding: .45rem .35rem;
+      gap: 0.5rem;
+      padding: 0.45rem 0.35rem;
       border-bottom: 1px solid var(--border);
-      font-size: .9rem;
+      font-size: 0.9rem;
     }
     .file-list a { color: var(--accent); text-decoration: none; flex: 1; word-break: break-all; }
-    .hint { font-size: .8rem; color: var(--muted); margin-top: .5rem; }
-    .screen-preview { max-width: 100%; border-radius: 8px; margin-top: .5rem; }
+    .hint { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; }
+    .screen-preview { max-width: 100%; border-radius: 8px; margin-top: 0.5rem; }
     .grid-2 { display: grid; gap: 1rem; }
     @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
     a { color: var(--accent); }
   </style>
 </head>
-<body>
-  <header class="site-header">
-    <div class="metrics-bar">
-      <div class="metrics-title-row">
-        <h1 id="host-title">Nout Panel</h1>
-        <span class="badge" id="status">…</span>
-        <span class="metrics-time" id="updated">—</span>
-      </div>
-      <div class="stat-row">
-        <div class="stat">
-          <span class="stat-lbl">CPU</span>
-          <span class="stat-val" id="cpu-val">—</span>
-          <div class="bar mini"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div>
-        </div>
-        <div class="stat">
-          <span class="stat-lbl">ОЗУ</span>
-          <span class="stat-val" id="ram-val">—</span>
-          <div class="bar mini"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div>
-        </div>
-        <div class="stat">
-          <span class="stat-lbl">Load</span>
-          <span class="stat-val" id="load-val">—</span>
-          <div class="bar mini"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
-        </div>
-      </div>
-      <div class="metrics-extra">
-        <div id="temps" class="temps-inline"></div>
-        <div id="disks" class="disks-row">…</div>
-        <p class="panel-meta" id="panel-process" hidden></p>
-      </div>
-    </div>
-  </header>
+<body class="page-home" data-page-title="Главная">
+  <div class="panel-body">
+    <div class="app-shell">
+      <div data-nav-mount></div>
+      <main class="app-main">
+        <div class="wrap">
+          <h2 class="section-title">Управление</h2>
 
-  <div class="app-shell">
-    <div data-nav-mount></div>
-    <main class="app-main">
-      <div class="wrap">
-        <h2 class="section-title">Управление</h2>
-
-        <div class="card">
-          <h2>Терминал</h2>
-          <div id="terminal-wrap"></div>
-          <p class="hint">Shell на ноуте</p>
-          <button type="button" class="btn-ctl" id="term-new">Новая сессия</button>
-        </div>
-
-        <div class="grid-2">
           <div class="card">
-            <h2>Файлы</h2>
-            <div class="file-toolbar">
-              <button type="button" class="btn-ctl" id="file-up">↑ Вверх</button>
-              <button type="button" class="btn-ctl" id="file-refresh">Обновить</button>
-              <label class="btn-ctl">Загрузить<input type="file" id="file-input" hidden></label>
+            <h2>Терминал</h2>
+            <div id="terminal-wrap"></div>
+            <p class="hint">Shell на ноуте</p>
+            <button type="button" class="btn-ctl" id="term-new">Новая сессия</button>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <h2>Файлы</h2>
+              <div class="file-toolbar">
+                <button type="button" class="btn-ctl" id="file-up">↑ Вверх</button>
+                <button type="button" class="btn-ctl" id="file-refresh">Обновить</button>
+                <label class="btn-ctl">Загрузить<input type="file" id="file-input" hidden></label>
+              </div>
+              <div class="file-path" id="file-path">—</div>
+              <ul class="file-list" id="file-list"></ul>
             </div>
-            <div class="file-path" id="file-path">—</div>
-            <ul class="file-list" id="file-list"></ul>
-          </div>
-          <div class="card">
-            <h2>Питание и экран</h2>
-            <button type="button" class="btn-ctl warn" data-power="suspend" data-confirm="SUSPEND">Сон</button>
-            <button type="button" class="btn-ctl danger" data-power="reboot" data-confirm="REBOOT">Перезагрузка</button>
-            <button type="button" class="btn-ctl danger" data-power="shutdown" data-confirm="SHUTDOWN">Выключить</button>
-            <p class="hint">Подтверждение в диалоге</p>
-            <button type="button" class="btn-ctl" id="screen-shot" style="margin-top:.75rem">Скриншот</button>
-            <p class="hint" id="screen-hint">—</p>
-            <img id="screen-img" class="screen-preview" alt="" hidden>
+            <div class="card">
+              <h2>Питание и экран</h2>
+              <button type="button" class="btn-ctl warn" data-power="suspend" data-confirm="SUSPEND">Сон</button>
+              <button type="button" class="btn-ctl danger" data-power="reboot" data-confirm="REBOOT">Перезагрузка</button>
+              <button type="button" class="btn-ctl danger" data-power="shutdown" data-confirm="SHUTDOWN">Выключить</button>
+              <p class="hint">Подтверждение в диалоге</p>
+              <button type="button" class="btn-ctl" id="screen-shot" style="margin-top:.75rem">Скриншот</button>
+              <p class="hint" id="screen-hint">—</p>
+              <img id="screen-img" class="screen-preview" alt="" hidden>
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
 
+  <script src="/panel-shell.js"></script>
+  <script src="/panel-metrics.js"></script>
   <script src="/page-nav.js"></script>
   <script src="/xterm.min.js"></script>
   <script src="/panel-remote.js"></script>
-  <script>
-    // Экранирование для безопасной вставки в HTML
-    function esc(s) {
-      const d = document.createElement('div');
-      d.textContent = s == null ? '' : String(s);
-      return d.innerHTML;
-    }
-
-    function barClass(pct) {
-      if (pct >= 90) return 'danger';
-      if (pct >= 75) return 'warn';
-      return '';
-    }
-
-    function setBar(id, pct) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (pct == null || Number.isNaN(pct)) {
-        el.style.width = '0%';
-        el.className = 'bar-fill';
-        return;
-      }
-      const v = Math.min(100, Math.max(0, pct));
-      el.style.width = v + '%';
-      el.className = 'bar-fill ' + barClass(v);
-    }
-
-    function renderDisks(disks) {
-      const root = document.getElementById('disks');
-      if (!disks || !disks.length) {
-        root.innerHTML = '<span class="na">Диски: —</span>';
-        return;
-      }
-      root.innerHTML = disks.map(d => `
-        <div class="disk-item" title="${esc(d.device)} · ${d.free_gb} ГБ свободно">
-          <span class="disk-name">${esc(d.mount)}</span>
-          <span class="disk-pct">${d.percent}%</span>
-          <div class="bar mini"><div class="bar-fill ${barClass(d.percent)}" style="width:${d.percent}%"></div></div>
-        </div>
-      `).join('');
-    }
-
-    function renderTemps(block) {
-      const root = document.getElementById('temps');
-      const sensors = (block && block.available && block.sensors) ? block.sensors : [];
-      root.innerHTML = sensors.map(t =>
-        `<span class="t">${esc(t.name)} ${esc(t.celsius)}°</span>`
-      ).join('');
-    }
-
-    function formatUptime(sec) {
-      if (sec == null || sec < 0) return '—';
-      if (sec >= 86400) return Math.floor(sec / 86400) + ' д ' + Math.floor((sec % 86400) / 3600) + ' ч';
-      if (sec >= 3600) return Math.floor(sec / 3600) + ' ч ' + Math.floor((sec % 3600) / 60) + ' м';
-      if (sec >= 60) return Math.floor(sec / 60) + ' м';
-      return Math.round(sec) + ' с';
-    }
-
-    function renderPanel(p) {
-      const el = document.getElementById('panel-process');
-      if (!p || !p.available) {
-        el.hidden = true;
-        return;
-      }
-      el.hidden = false;
-      const ram = p.rss_mb != null ? p.rss_mb + ' МБ RAM' : 'RAM —';
-      const thr = p.threads != null ? ' · ' + p.threads + ' поток.' : '';
-      el.textContent = 'Панель: PID ' + p.pid + ' · ' + ram + thr + ' · uptime ' + formatUptime(p.uptime_sec);
-    }
-
-    let hostname = 'Nout Panel';
-
-    async function loadHost() {
-      try {
-        const r = await fetch('/api/status', { cache: 'no-store' });
-        const d = await r.json();
-        if (d.hostname) {
-          hostname = d.hostname;
-          document.getElementById('host-title').textContent = hostname;
-          document.title = hostname + ' — Главная';
-        }
-      } catch (_) { /* повторим на следующем тике */ }
-    }
-
-    async function tick() {
-      try {
-        const r = await fetch('/api/metrics', { cache: 'no-store' });
-        const d = await r.json();
-        if (!d.ok) throw new Error(d.error || 'API error');
-
-        document.getElementById('status').textContent = hostname;
-        document.getElementById('status').className = 'badge';
-
-        const cpu = d.cpu_percent ?? 0;
-        const mem = d.memory || {};
-        const ld = d.load || {};
-        const ram = mem.ram_percent;
-        const loadPct = ld.load_percent;
-
-        document.getElementById('cpu-val').textContent = cpu + '%';
-        if (mem.available === false || ram == null) {
-          document.getElementById('ram-val').textContent = '—';
-          setBar('ram-bar', null);
-        } else {
-          document.getElementById('ram-val').textContent = ram + '%';
-          setBar('ram-bar', ram);
-        }
-        if (ld.load_1 == null || loadPct == null) {
-          document.getElementById('load-val').textContent = '—';
-          setBar('load-bar', null);
-        } else {
-          document.getElementById('load-val').textContent = loadPct + '%';
-          setBar('load-bar', Math.min(100, loadPct));
-        }
-
-        setBar('cpu-bar', cpu);
-        renderDisks(d.disks);
-        renderTemps(d.temperatures);
-        renderPanel(d.panel);
-
-        const t = new Date(d.time_utc);
-        document.getElementById('updated').textContent = t.toLocaleTimeString('ru-RU', {
-          hour: '2-digit', minute: '2-digit', second: '2-digit',
-        });
-      } catch (e) {
-        document.getElementById('status').textContent = 'Нет связи';
-        document.getElementById('status').className = 'badge offline';
-      }
-    }
-
-    loadHost();
-    tick();
-    setInterval(tick, 1000);
-    setInterval(loadHost, 30000);
-  </script>
 </body>
 </html>

@@ -122,19 +122,19 @@
   }
 }
 
-/* Чат: shell на всю высоту */
-body.page-chat {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
+/* Чат: shell на всю высоту под header */
+body.page-shell.page-chat .panel-body {
+  flex: 1;
+  min-height: 0;
 }
-body.page-chat .app-shell {
+body.page-shell.page-chat .app-shell {
   flex: 1;
   min-height: 0;
 }
 @media (min-width: 768px) {
-  body.page-chat .side-nav {
-    top: 0;
-    padding-top: .75rem;
+  body.page-shell .side-nav {
+    align-self: flex-start;
+    max-height: calc(100dvh - 8rem);
+    overflow-y: auto;
   }
 }
