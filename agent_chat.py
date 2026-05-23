@@ -14,7 +14,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from panel_log import setup_logging
+try:
+    from panel_log import setup_logging
+except ImportError:
+    import logging
+
+    logging.basicConfig(level=logging.INFO)
+
+    def setup_logging(name: str = "nout-panel") -> logging.Logger:
+        return logging.getLogger(name)
 
 _log = setup_logging("nout-panel.chat")
 

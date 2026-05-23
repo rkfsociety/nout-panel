@@ -12,7 +12,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
-from panel_log import setup_logging
+try:
+    from panel_log import setup_logging
+except ImportError:
+    import logging
+
+    logging.basicConfig(level=logging.INFO)
+
+    def setup_logging(name: str = "nout-panel") -> logging.Logger:
+        return logging.getLogger(name)
 
 _log = setup_logging("nout-panel.metrics")
 
@@ -90,6 +98,39 @@ _prev_cpu: tuple[int, int] | None = None
 _thread_started = False
 
 
+def _proc_exists(path: Path) -> bool:
+    """Проверка, что файл /proc или /sys доступен для чтения."""
+    return os.path.exists(os.fspath(path))
+
+
+def _read_proc_text(path: Path) -> str | None:
+    """Прочитать файл /proc; при отсутствии — None, без падения."""
+    if not _proc_exists(path):
+        _log.debug("Файл недоступен: %s", path)
+        return None
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as exc:
+        _log.warning("Не удалось прочитать %s: %s", path, exc)
+        return None
+
+
+def _parse_int(raw: str, default: int | None = 0) -> int | None:
+    """Безопасный int; при ошибке — default."""
+    try:
+        return int(str(raw).strip().split()[0])
+    except (ValueError, TypeError, IndexError, AttributeError):
+        return default
+
+
+def _parse_float(raw: str, default: float | None = 0.0) -> float | None:
+    """Безопасный float; при ошибке — default."""
+    try:
+        return float(str(raw).strip().split()[0])
+    except (ValueError, TypeError, IndexError, AttributeError):
+        return default
+
+
 def _safe(label: str, fn: Callable[[], Any], default: Any) -> Any:
     """Вызов сборщика: при ошибке — default и запись в лог, без падения."""
     try:
@@ -122,20 +163,35 @@ def _battery_na() -> dict[str, Any]:
     return {"available": False, "percent": None, "status": "na", "status_label": "N/A"}
 
 
-def _read_cpu_jiffies() -> tuple[int, int]:
+def _read_cpu_jiffies() -> tuple[int, int] | None:
     """Сумма jiffies CPU и idle из /proc/stat."""
-    parts = _PROC_STAT.read_text(encoding="utf-8").splitlines()[0].split()
+    text = _read_proc_text(_PROC_STAT)
+    if not text:
+        return None
+    lines = text.splitlines()
+    if not lines:
+        return None
+    parts = lines[0].split()
+    if len(parts) < 5:
+        return None
     # cpu user nice system idle iowait irq softirq ...
-    nums = [int(x) for x in parts[1:]]
+    nums: list[int] = []
+    for token in parts[1:]:
+        val = _parse_int(token, None)
+        if val is not None:
+            nums.append(val)
+    if len(nums) < 4:
+        return None
     idle = nums[3] + (nums[4] if len(nums) > 4 else 0)
-    total = sum(nums)
-    return total, idle
+    return sum(nums), idle
 
 
 def _cpu_percent() -> float | None:
     """Загрузка CPU (%), нужны два замера."""
     global _prev_cpu
     cur = _read_cpu_jiffies()
+    if cur is None:
+        return None
     if _prev_cpu is None:
         _prev_cpu = cur
         return None
@@ -149,10 +205,17 @@ def _cpu_percent() -> float | None:
 
 def _memory() -> dict[str, Any]:
     """ОЗУ и swap из /proc/meminfo (кБ)."""
+    text = _read_proc_text(_PROC_MEMINFO)
+    if not text:
+        raise OSError("meminfo недоступен")
     info: dict[str, int] = {}
-    for line in _PROC_MEMINFO.read_text(encoding="utf-8").splitlines():
+    for line in text.splitlines():
+        if ":" not in line:
+            continue
         key, rest = line.split(":", 1)
-        info[key] = int(rest.strip().split()[0])
+        kb = _parse_int(rest, None)
+        if kb is not None:
+            info[key] = kb
 
     total_kb = info.get("MemTotal", 0)
     avail_kb = info.get("MemAvailable", info.get("MemFree", 0))
@@ -178,13 +241,22 @@ def _memory() -> dict[str, Any]:
 
 def _load() -> dict[str, Any]:
     """Средняя загрузка и число ядер."""
-    parts = _PROC_LOADAVG.read_text(encoding="utf-8").split()
+    text = _read_proc_text(_PROC_LOADAVG)
+    if not text:
+        raise OSError("loadavg недоступен")
+    parts = text.split()
+    if len(parts) < 3:
+        raise ValueError("короткая строка loadavg")
+    load1 = _parse_float(parts[0], None)
+    load5 = _parse_float(parts[1], None)
+    load15 = _parse_float(parts[2], None)
+    if load1 is None:
+        raise ValueError("не удалось разобрать loadavg")
     cores = os.cpu_count() or 1
-    load1 = float(parts[0])
     return {
         "load_1": load1,
-        "load_5": float(parts[1]),
-        "load_15": float(parts[2]),
+        "load_5": load5 if load5 is not None else 0.0,
+        "load_15": load15 if load15 is not None else 0.0,
         "cpu_cores": cores,
         "load_percent": round(100.0 * load1 / cores, 1),
     }
@@ -193,7 +265,7 @@ def _load() -> dict[str, Any]:
 def _temperatures() -> dict[str, Any]:
     """Температуры из thermal_zone; сбой датчика — пропуск, нет датчиков — N/A."""
     by_label: dict[str, float] = {}
-    if not _SYS_THERMAL.is_dir():
+    if not _proc_exists(_SYS_THERMAL) or not _SYS_THERMAL.is_dir():
         return _temperatures_na()
     for zone in sorted(_SYS_THERMAL.iterdir(), key=lambda p: p.name):
         if not zone.name.startswith("thermal_zone"):
@@ -206,7 +278,9 @@ def _temperatures() -> dict[str, Any]:
             raw = temp_path.read_text(encoding="utf-8").strip()
             if not raw or raw in ("0", "00"):
                 continue
-            milli = int(raw)
+            milli = _parse_int(raw, None)
+            if milli is None:
+                continue
             celsius = round(milli / 1000.0, 1)
             if celsius <= 0:
                 continue
@@ -223,7 +297,7 @@ def _temperatures() -> dict[str, Any]:
 
 def _battery() -> dict[str, Any]:
     """Заряд батареи из power_supply (ноутбук); на ПК без BAT — N/A."""
-    if not _SYS_POWER.is_dir():
+    if not _proc_exists(_SYS_POWER) or not _SYS_POWER.is_dir():
         return _battery_na()
     status_labels = {
         "charging": "зарядка",
@@ -240,8 +314,8 @@ def _battery() -> dict[str, Any]:
         try:
             if not cap_path.is_file():
                 continue
-            percent = int(cap_path.read_text(encoding="utf-8").strip())
-            if percent < 0 or percent > 100:
+            percent = _parse_int(cap_path.read_text(encoding="utf-8"), None)
+            if percent is None or percent < 0 or percent > 100:
                 continue
             status_raw = "unknown"
             if status_path.is_file():
@@ -261,7 +335,10 @@ def _disks() -> list[dict[str, Any]]:
     """Занятость смонтированных разделов."""
     seen: set[str] = set()
     mounts: list[tuple[str, str, str]] = []
-    for line in _PROC_MOUNTS.read_text(encoding="utf-8").splitlines():
+    mounts_text = _read_proc_text(_PROC_MOUNTS)
+    if not mounts_text:
+        return []
+    for line in mounts_text.splitlines():
         parts = line.split()
         if len(parts) < 3:
             continue
@@ -358,7 +435,7 @@ def _collect_once() -> dict[str, Any]:
 def _collector_loop() -> None:
     """Фоновый цикл обновления кэша."""
     global _prev_cpu
-    # Первый замер CPU
+    # Первый замер CPU (если /proc/stat недоступен — пропускаем)
     _prev_cpu = _read_cpu_jiffies()
     time.sleep(COLLECT_INTERVAL)
     while True:
