@@ -39,6 +39,10 @@ PORT = int(os.environ.get("PANEL_PORT", "8765"))
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 PANEL_VERSION = "0.5.0"
 
+# Кэш в браузере: HTML всегда свежий, статика .js/.css — на неделю
+_CACHE_HTML = "no-cache"
+_CACHE_STATIC = "public, max-age=604800"
+
 
 def _local_ips() -> list[str]:
     """Список IPv4-адресов машины (кроме loopback)."""
@@ -133,6 +137,15 @@ class PanelHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _static_cache_control(self, path: Path, content_type: str) -> str:
+        """Заголовок Cache-Control для HTML и статики."""
+        name = path.name.lower()
+        if content_type.startswith("text/html") or name.endswith(".html"):
+            return _CACHE_HTML
+        if name.endswith((".js", ".css")):
+            return _CACHE_STATIC
+        return _CACHE_HTML
+
     def _send_file(self, path: Path, content_type: str) -> None:
         if not path.is_file():
             self.send_error(404, "Not Found")
@@ -140,6 +153,7 @@ class PanelHandler(BaseHTTPRequestHandler):
         data = path.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", content_type)
+        self.send_header("Cache-Control", self._static_cache_control(path, content_type))
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
