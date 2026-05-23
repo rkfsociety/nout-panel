@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from typing import Any
 
@@ -21,6 +22,11 @@ _log = setup_logging("nout-panel.control")
 
 _CONFIRM = "RESTART_PANEL"
 _UNIT = os.environ.get("PANEL_SYSTEMD_UNIT", "nout-panel.service")
+_SUDO_HINT = "Нет прав sudo. На ноуте один раз: sudo ./install.sh"
+
+
+def _systemctl_path() -> str:
+    return shutil.which("systemctl") or "/usr/bin/systemctl"
 
 
 def restart_panel(confirm: str) -> dict[str, Any]:
@@ -28,34 +34,35 @@ def restart_panel(confirm: str) -> dict[str, Any]:
     if confirm != _CONFIRM:
         return {"ok": False, "error": f"Нужно подтверждение: {_CONFIRM}"}
 
-    # Проверка sudo без пароля (настраивается в install.sh)
-    try:
-        check = subprocess.run(
-            ["sudo", "-n", "-v"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-    except (FileNotFoundError, OSError, subprocess.TimeoutExpired) as exc:
-        return {"ok": False, "error": str(exc)}
-    if check.returncode != 0:
-        return {
-            "ok": False,
-            "error": "Нет прав на systemctl. Один раз на ноуте: sudo ./install.sh (вкладка Настройки)",
-        }
-
     unit = _UNIT.replace("'", "")
-    # Небольшая задержка — чтобы JSON-ответ успел дойти до браузера
-    script = f"sleep 0.8 && exec /usr/bin/systemctl restart '{unit}'"
+    systemctl = _systemctl_path()
+    # Задержка — чтобы JSON-ответ успел дойти до браузера
+    script = f"sleep 0.8 && exec {systemctl} restart '{unit}'"
+
     try:
-        subprocess.Popen(
+        proc = subprocess.Popen(
             ["sudo", "-n", "/bin/sh", "-c", script],
             start_new_session=True,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
         )
-        _log.warning("panel restart scheduled (%s)", unit)
-        return {"ok": True, "message": "Панель перезапускается…"}
     except OSError as exc:
         return {"ok": False, "error": str(exc)}
+
+    # sudo -v не подходит: в sudoers только restart, не полный sudo
+    try:
+        _out, err = proc.communicate(timeout=1.5)
+    except subprocess.TimeoutExpired:
+        return {"ok": True, "message": "Панель перезапускается…"}
+
+    hint = (err or b"").decode("utf-8", "replace").strip()[:240]
+    if proc.returncode != 0:
+        _log.warning("panel restart denied: %s", hint or proc.returncode)
+        return {
+            "ok": False,
+            "error": f"{_SUDO_HINT}. {hint}" if hint else _SUDO_HINT,
+        }
+
+    _log.warning("panel restart scheduled (%s)", unit)
+    return {"ok": True, "message": "Панель перезапускается…"}
