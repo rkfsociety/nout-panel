@@ -244,10 +244,7 @@
     </div>
 
     <p class="footer">
-      <span id="updated">—</span><br>
-      <a href="/api/metrics" target="_blank" rel="noopener">JSON метрик</a>
-      ·
-      <button type="button" class="btn-copy" id="copy-json" style="min-height:36px;min-width:auto;display:inline-flex;vertical-align:middle">Копировать JSON</button>
+      <span id="updated">—</span>
     </p>
   </div>
 
@@ -481,7 +478,6 @@
     }
 
     let hostname = 'Nout Panel';
-    let lastMetricsJson = '';
 
     async function loadHost() {
       try {
@@ -500,7 +496,6 @@
 
     document.getElementById('copy-host').dataset.label = 'Копировать имя хоста';
     document.getElementById('copy-url').dataset.label = 'Копировать ссылку';
-    document.getElementById('copy-json').dataset.label = 'Копировать JSON';
 
     document.getElementById('copy-host').addEventListener('click', function () {
       copyText(this.dataset.copy || hostname, this);
@@ -508,17 +503,12 @@
     document.getElementById('copy-url').addEventListener('click', function () {
       copyText(this.dataset.copy || location.href, this);
     });
-    document.getElementById('copy-json').addEventListener('click', function () {
-      copyText(lastMetricsJson || '{}', this);
-    });
 
     async function tick() {
       try {
         const r = await fetch('/api/metrics', { cache: 'no-store' });
         const d = await r.json();
         if (!d.ok) throw new Error(d.error || 'API error');
-
-        lastMetricsJson = JSON.stringify(d, null, 2);
 
         document.getElementById('status').textContent = 'Онлайн · ' + hostname;
         document.getElementById('status').className = 'badge';
