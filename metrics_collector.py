@@ -9,7 +9,13 @@ import threading
 import time
 from collections import deque
 from datetime import datetime, timezone
-from typing import Any
+from pathlib import Path
+from typing import Any, Callable
+
+from panel_log import setup_logging
+
+# Логгер пишет в /var/log/nout-panel.log
+_log = setup_logging("nout-panel.metrics")
 
 # Интервал обновления кэша (сек)
 COLLECT_INTERVAL = 0.5
@@ -54,6 +60,38 @@ _history: deque[dict[str, Any]] = deque(maxlen=HISTORY_MAXLEN)
 _lock = threading.Lock()
 _prev_cpu: tuple[int, int] | None = None
 _thread_started = False
+
+
+def _safe(label: str, fn: Callable[[], Any], default: Any) -> Any:
+    """Вызов сборщика: при ошибке — default и запись в лог, без падения."""
+    try:
+        return fn()
+    except Exception as exc:  # noqa: BLE001 — отдельные датчики не роняют цикл
+        _log.warning("%s: %s", label, exc)
+        return default
+
+
+def _memory_na() -> dict[str, Any]:
+    """ОЗУ недоступно — N/A в UI."""
+    return {
+        "available": False,
+        "ram_total_gb": None,
+        "ram_used_gb": None,
+        "ram_percent": None,
+        "swap_total_gb": None,
+        "swap_used_gb": None,
+        "swap_percent": None,
+    }
+
+
+def _temperatures_na() -> dict[str, Any]:
+    """Температуры недоступны — N/A в UI."""
+    return {"available": False, "sensors": []}
+
+
+def _battery_na() -> dict[str, Any]:
+    """Батарея отсутствует или недоступна — N/A в UI."""
+    return {"available": False, "percent": None, "status": "na", "status_label": "N/A"}
 
 
 def _read_cpu_jiffies() -> tuple[int, int]:
@@ -102,6 +140,7 @@ def _memory() -> dict[str, Any]:
         return round(100.0 * used / total, 1) if total > 0 else 0.0
 
     return {
+        "available": True,
         "ram_total_gb": round(total_kb / 1024 / 1024, 2),
         "ram_used_gb": round(used_kb / 1024 / 1024, 2),
         "ram_percent": pct(used_kb, total_kb),
@@ -125,27 +164,75 @@ def _load() -> dict[str, Any]:
     }
 
 
-def _temperatures() -> list[dict[str, Any]]:
-    """Температуры из thermal_zone — по типу берём максимум."""
+def _temperatures() -> dict[str, Any]:
+    """Температуры из thermal_zone; сбой датчика — пропуск, нет датчиков — N/A."""
     by_label: dict[str, float] = {}
-    base = "/sys/class/thermal"
-    if not os.path.isdir(base):
-        return []
+    base = Path("/sys/class/thermal")
+    if not base.is_dir():
+        return _temperatures_na()
     for name in sorted(os.listdir(base)):
         if not name.startswith("thermal_zone"):
             continue
-        temp_path = os.path.join(base, name, "temp")
-        type_path = os.path.join(base, name, "type")
+        zone = base / name
+        temp_path = zone / "temp"
+        type_path = zone / "type"
         try:
-            milli = int(open(temp_path, encoding="utf-8").read().strip())
+            if not temp_path.is_file():
+                continue
+            raw = temp_path.read_text(encoding="utf-8").strip()
+            if not raw or raw in ("0", "00"):
+                continue
+            milli = int(raw)
             celsius = round(milli / 1000.0, 1)
             if celsius <= 0:
                 continue
-            label = open(type_path, encoding="utf-8").read().strip()
+            label = type_path.read_text(encoding="utf-8").strip() if type_path.is_file() else name
             by_label[label] = max(by_label.get(label, 0.0), celsius)
-        except (OSError, ValueError):
+        except (OSError, ValueError, TypeError):
+            # Отдельная зона недоступна — не прерываем сбор остальных
             continue
-    return [{"name": k, "celsius": v} for k, v in sorted(by_label.items())]
+    if not by_label:
+        return _temperatures_na()
+    sensors = [{"name": k, "celsius": v, "status": "ok"} for k, v in sorted(by_label.items())]
+    return {"available": True, "sensors": sensors}
+
+
+def _battery() -> dict[str, Any]:
+    """Заряд батареи из power_supply (ноутбук); на ПК без BAT — N/A."""
+    base = Path("/sys/class/power_supply")
+    if not base.is_dir():
+        return _battery_na()
+    status_labels = {
+        "charging": "зарядка",
+        "discharging": "разряд",
+        "full": "полная",
+        "not charging": "не заряжается",
+        "unknown": "неизвестно",
+    }
+    for name in sorted(os.listdir(base)):
+        if not name.upper().startswith("BAT"):
+            continue
+        root = base / name
+        cap_path = root / "capacity"
+        status_path = root / "status"
+        try:
+            if not cap_path.is_file():
+                continue
+            percent = int(cap_path.read_text(encoding="utf-8").strip())
+            if percent < 0 or percent > 100:
+                continue
+            status_raw = "unknown"
+            if status_path.is_file():
+                status_raw = status_path.read_text(encoding="utf-8").strip().lower()
+            return {
+                "available": True,
+                "percent": percent,
+                "status": status_raw,
+                "status_label": status_labels.get(status_raw, status_raw),
+            }
+        except (OSError, ValueError, TypeError):
+            continue
+    return _battery_na()
 
 
 def _disks() -> list[dict[str, Any]]:
@@ -208,8 +295,12 @@ def _append_history(data: dict[str, Any]) -> None:
     """Добавить точку в кольцевой буфер для графиков."""
     if not data.get("cpu_ready"):
         return
-    temps = data.get("temperatures") or []
-    temp_max = max((t["celsius"] for t in temps), default=None)
+    temps_block = data.get("temperatures") or {}
+    sensors = temps_block.get("sensors") if isinstance(temps_block, dict) else temps_block or []
+    temp_max = max(
+        (t["celsius"] for t in sensors if t.get("celsius") is not None),
+        default=None,
+    )
     point: dict[str, Any] = {
         "ts": data["time_utc"],
         "cpu": data["cpu_percent"],
@@ -222,17 +313,23 @@ def _append_history(data: dict[str, Any]) -> None:
 
 
 def _collect_once() -> dict[str, Any]:
-    """Один проход сбора всех метрик."""
+    """Один проход сбора всех метрик; сбой подсистемы — N/A, не исключение."""
     cpu = _cpu_percent()
+    memory = _safe("memory", _memory, _memory_na())
+    load = _safe("load", _load, {"load_1": None, "load_5": None, "load_15": None, "cpu_cores": None, "load_percent": None})
+    temperatures = _safe("temperatures", _temperatures, _temperatures_na())
+    battery = _safe("battery", _battery, _battery_na())
+    disks = _safe("disks", _disks, [])
     return {
         "ok": True,
         "time_utc": datetime.now(timezone.utc).isoformat(),
         "cpu_percent": cpu if cpu is not None else 0.0,
         "cpu_ready": cpu is not None,
-        "memory": _memory(),
-        "load": _load(),
-        "temperatures": _temperatures(),
-        "disks": _disks(),
+        "memory": memory,
+        "load": load,
+        "temperatures": temperatures,
+        "battery": battery,
+        "disks": disks,
     }
 
 
@@ -250,6 +347,7 @@ def _collector_loop() -> None:
                 _cache.update(data)
                 _append_history(data)
         except Exception as exc:  # noqa: BLE001 — не роняем поток
+            _log.exception("collector_loop: %s", exc)
             with _lock:
                 _cache.update({"ok": False, "error": str(exc)})
         time.sleep(COLLECT_INTERVAL)

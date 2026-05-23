@@ -42,8 +42,17 @@ IP покажет вывод `install.sh` или `hostname -I` на ноуте.
 ```bash
 sudo systemctl status nout-panel
 sudo systemctl restart nout-panel
-journalctl -u nout-panel -f
+# Логи (файл, не journal):
+sudo tail -f /var/log/nout-panel.log
 ```
+
+После обновления кода переустановите юнит: `sudo ./install.sh` (создаёт лог-файл, `Restart=on-failure`).
+
+## Надёжность
+
+- **systemd**: `Restart=on-failure` — сервис поднимается после сбоя
+- **Логи**: `/var/log/nout-panel.log` (ротация ~2 МБ × 3 файла)
+- **Датчики**: нет батареи/температуры на ПК — в UI показывается **N/A**, панель не падает
 
 ## Приватность
 

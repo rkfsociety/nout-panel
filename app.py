@@ -14,6 +14,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from metrics_collector import get_metrics, start_collector
+from panel_log import setup_logging
+
+# Логи HTTP и старта — в файл, не в консоль
+_log = setup_logging("nout-panel")
 
 # Порт из окружения (install.sh → /etc/nout-panel/env)
 HOST = "0.0.0.0"
@@ -50,19 +54,18 @@ def _status_payload() -> dict:
         "ips": _local_ips(),
         "time_utc": datetime.now(timezone.utc).isoformat(),
         "platform": platform.platform(),
-        "panel_version": "0.3.0",
+        "panel_version": "0.3.1",
     }
 
 
 class PanelHandler(BaseHTTPRequestHandler):
     """HTTP: главная, /api/status, /api/metrics."""
 
-    server_version = "NoutPanel/0.3"
+    server_version = "NoutPanel/0.3.1"
 
     def log_message(self, fmt: str, *args) -> None:
-        import sys
-
-        sys.stderr.write("%s - - [%s] %s\n" % (self.client_address[0], self.log_date_time_string(), fmt % args))
+        # Запросы в лог-файл
+        _log.info("%s - - [%s] %s", self.client_address[0], self.log_date_time_string(), fmt % args)
 
     def _send_json(self, data: dict, code: int = 200) -> None:
         body = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
@@ -109,8 +112,14 @@ class PanelHandler(BaseHTTPRequestHandler):
 def main() -> None:
     start_collector()
     httpd = ThreadingHTTPServer((HOST, PORT), PanelHandler)
-    print(f"Nout panel: http://{_local_ips()[0]}:{PORT}/", flush=True)
-    httpd.serve_forever()
+    _log.info("Nout panel started: http://%s:%s/", _local_ips()[0], PORT)
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        _log.info("Nout panel stopped (keyboard)")
+    except Exception:
+        _log.exception("Nout panel fatal error")
+        raise
 
 
 if __name__ == "__main__":

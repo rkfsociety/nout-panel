@@ -34,6 +34,12 @@ source "${CONFIG_LOCAL}"
 
 chmod +x "${INSTALL_DIR}/app.py"
 
+# Лог-файл для отладки (доступ только пользователю панели)
+LOG_FILE="/var/log/nout-panel.log"
+touch "${LOG_FILE}"
+chown "${PANEL_USER}:${PANEL_USER}" "${LOG_FILE}"
+chmod 640 "${LOG_FILE}"
+
 # Копия настроек для systemd (без секретов)
 install -d -m 0755 /etc/nout-panel
 install -m 0644 "${CONFIG_LOCAL}" /etc/nout-panel/env
@@ -54,7 +60,7 @@ PORT="${PANEL_PORT:-8765}"
 if curl -fsS "http://127.0.0.1:${PORT}/api/status" >/dev/null; then
 	echo "Панель отвечает локально."
 else
-	echo "Предупреждение: проверка не прошла — journalctl -u nout-panel" >&2
+	echo "Предупреждение: проверка не прошла — tail -f ${LOG_FILE}" >&2
 	exit 1
 fi
 
@@ -62,3 +68,5 @@ IP="$(hostname -I | awk '{print $1}')"
 echo ""
 echo "Откройте в браузере (LAN):"
 echo "  http://${IP}:${PORT}/"
+echo ""
+echo "Логи: tail -f ${LOG_FILE}"

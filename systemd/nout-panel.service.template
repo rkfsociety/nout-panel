@@ -10,8 +10,15 @@ Group=@PANEL_USER@
 WorkingDirectory=@INSTALL_DIR@
 ExecStart=/usr/bin/python3 @INSTALL_DIR@/app.py
 EnvironmentFile=-/etc/nout-panel/env
+Environment=PANEL_LOG_FILE=/var/log/nout-panel.log
+# Авто-перезапуск после сбоя процесса
 Restart=on-failure
-RestartSec=3
+RestartSec=5
+StartLimitIntervalSec=300
+StartLimitBurst=10
+# Логи приложения — в файл (panel_log.py), не в journal
+StandardOutput=null
+StandardError=null
 
 [Install]
 WantedBy=multi-user.target
