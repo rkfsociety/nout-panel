@@ -164,7 +164,8 @@ def popen_shell_script(script: str) -> dict[str, Any]:
                 start_new_session=True,
             )
             assert proc.stdin is not None
-            proc.stdin.write(pwd + "\n")
+            # stdin в бинарном режиме — только bytes
+            proc.stdin.write((pwd + "\n").encode("utf-8"))
             proc.stdin.flush()
             proc.stdin.close()
         else:
