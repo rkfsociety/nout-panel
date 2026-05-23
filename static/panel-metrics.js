@@ -107,7 +107,7 @@
 
       var status = document.getElementById('status');
       if (status) {
-        status.textContent = hostname;
+        status.textContent = 'В сети';
         status.className = 'badge';
       }
 

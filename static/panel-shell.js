@@ -6,7 +6,7 @@
     '<div class="metrics-row">' +
     '<div class="metrics-brand">' +
     '<h1 id="host-title">Nout Panel</h1>' +
-    '<span class="badge" id="status">…</span>' +
+    '<span class="badge" id="status" aria-live="polite">—</span>' +
     '<span class="metrics-time" id="updated">—</span>' +
     '</div>' +
     '<div class="stat-row">' +
