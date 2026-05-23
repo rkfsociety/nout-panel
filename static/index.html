@@ -65,24 +65,6 @@
       text-transform: uppercase;
       letter-spacing: .06em;
     }
-    .row-list { display: flex; flex-direction: column; gap: .5rem; }
-    .row-item {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      flex-wrap: wrap;
-      font-size: .9rem;
-    }
-    .row-item code {
-      flex: 1;
-      min-width: 0;
-      font-size: .85rem;
-      background: #080b10;
-      padding: .45rem .6rem;
-      border-radius: 8px;
-      word-break: break-all;
-      color: var(--text);
-    }
     .btn-copy {
       flex-shrink: 0;
       min-height: var(--touch);
@@ -155,12 +137,6 @@
       gap: .35rem;
     }
     .temp-chip.na { font-style: italic; opacity: .85; }
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .5rem;
-      margin-top: .75rem;
-    }
     .footer {
       margin-top: 1.25rem;
       font-size: .75rem;
@@ -183,15 +159,6 @@
     <div class="badge" id="status">Подключение…</div>
 
     <div class="grid">
-      <div class="card" id="network-card" hidden>
-        <h2>Сеть</h2>
-        <div class="row-list" id="ip-list"></div>
-        <div class="actions">
-          <button type="button" class="btn-copy" id="copy-url" data-copy="">Копировать ссылку</button>
-          <button type="button" class="btn-copy" id="copy-host">Копировать имя хоста</button>
-        </div>
-      </div>
-
       <div class="card">
         <h2>История</h2>
         <div class="chart-box">
@@ -306,28 +273,6 @@
         btn.dataset.label = btn.textContent;
         btn.addEventListener('click', () => copyText(btn.dataset.copy, btn));
       });
-    }
-
-    function renderIps(ips) {
-      const card = document.getElementById('network-card');
-      const list = document.getElementById('ip-list');
-      const port = location.port || '8765';
-      if (!ips || !ips.length) {
-        card.hidden = true;
-        return;
-      }
-      card.hidden = false;
-      const primary = ips[0];
-      const url = 'http://' + primary + ':' + port + '/';
-      document.getElementById('copy-url').dataset.copy = url;
-
-      list.innerHTML = ips.map(ip => `
-        <div class="row-item">
-          <code>${esc(ip)}</code>
-          <button type="button" class="btn-copy" data-copy="${esc(ip)}" aria-label="Копировать IP">Копировать</button>
-        </div>
-      `).join('');
-      bindCopyButtons();
     }
 
     function renderDisks(disks) {
@@ -487,22 +432,9 @@
           hostname = d.hostname;
           document.getElementById('host-title').textContent = hostname;
           document.title = hostname + ' — Nout Panel';
-          document.getElementById('copy-host').dataset.copy = hostname;
-          bindCopyButtons();
         }
-        renderIps(d.ips || []);
       } catch (_) { /* повторим на следующем тике */ }
     }
-
-    document.getElementById('copy-host').dataset.label = 'Копировать имя хоста';
-    document.getElementById('copy-url').dataset.label = 'Копировать ссылку';
-
-    document.getElementById('copy-host').addEventListener('click', function () {
-      copyText(this.dataset.copy || hostname, this);
-    });
-    document.getElementById('copy-url').addEventListener('click', function () {
-      copyText(this.dataset.copy || location.href, this);
-    });
 
     async function tick() {
       try {
