@@ -92,7 +92,23 @@ chmod 0644 "${UNIT}"
 systemctl daemon-reload
 systemctl enable nout-panel.service
 
+# Авто-перезапуск при изменении /etc/nout-panel/env
+install -m 0644 "${SCRIPT_DIR}/systemd/nout-panel-config.path" /etc/systemd/system/nout-panel-config.path
+install -m 0644 "${SCRIPT_DIR}/systemd/nout-panel-config.service" /etc/systemd/system/nout-panel-config.service
+systemctl enable nout-panel-config.path
+systemctl start nout-panel-config.path 2>/dev/null || true
+
 PORT="${PANEL_PORT:-8765}"
+
+# Подсказка: как применить правки config.local.env
+config_hint() {
+	echo ""
+	echo "Конфиг: ${CONFIG_LOCAL}  →  /etc/nout-panel/env"
+	echo "После правки:"
+	echo "  sudo cp ${CONFIG_LOCAL} /etc/nout-panel/env"
+	echo "  (сервис перезапустится автоматически)"
+	echo "Или одной командой: sudo ./install.sh"
+}
 
 if [[ "${NO_START}" -eq 1 ]]; then
 	echo ""
@@ -100,7 +116,7 @@ if [[ "${NO_START}" -eq 1 ]]; then
 	echo "Отредактируйте ${CONFIG_LOCAL}, затем:"
 	echo "  sudo cp ${CONFIG_LOCAL} /etc/nout-panel/env"
 	echo "  sudo systemctl start nout-panel"
-	echo ""
+	config_hint
 	echo "Логи после запуска: tail -f ${LOG_FILE}"
 	exit 0
 fi
@@ -124,3 +140,4 @@ echo "  http://${IP}:${PORT}/chat     — чат с Cursor Agent"
 echo ""
 echo "Чат: один раз на ноуте выполните: cursor agent login"
 echo "Логи: tail -f ${LOG_FILE}"
+config_hint

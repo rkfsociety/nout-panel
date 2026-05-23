@@ -1,0 +1,8 @@
+[Unit]
+Description=Следить за конфигом nout-panel
+
+[Path]
+PathChanged=/etc/nout-panel/env
+
+[Install]
+WantedBy=multi-user.target

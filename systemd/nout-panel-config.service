@@ -1,0 +1,6 @@
+[Unit]
+Description=Перезапуск nout-panel после изменения конфига
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl restart nout-panel.service

@@ -41,6 +41,14 @@ IP покажет вывод `install.sh` или `hostname -I` на ноуте.
 
 ## Управление
 
+После правки `config.local.env` скопируйте его в systemd — панель перезапустится сама:
+
+```bash
+sudo cp config.local.env /etc/nout-panel/env
+```
+
+Или снова `sudo ./install.sh` (копирует конфиг и перезапускает).
+
 ```bash
 sudo systemctl status nout-panel
 sudo systemctl restart nout-panel
