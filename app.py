@@ -261,6 +261,8 @@ class PanelHandler(BaseHTTPRequestHandler):
             "/xterm.min.css": ("xterm.min.css", "text/css; charset=utf-8"),
             "/nav.css": ("nav.css", "text/css; charset=utf-8"),
             "/nav.js": ("nav.js", "application/javascript; charset=utf-8"),
+            "/panel-remote.js": ("panel-remote.js", "application/javascript; charset=utf-8"),
+            "/panel-chat.js": ("panel-chat.js", "application/javascript; charset=utf-8"),
         }
         if path in static_map:
             name, ctype = static_map[path]
