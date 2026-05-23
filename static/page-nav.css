@@ -1,0 +1,23 @@
+/* Простые ссылки между страницами (не вкладки) */
+.page-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem 1rem;
+  padding: max(.5rem, env(safe-area-inset-top)) 1rem .55rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #0a0d12;
+  font-size: .85rem;
+}
+.page-nav a {
+  color: #7d8fa8;
+  text-decoration: none;
+  padding: .2rem 0;
+}
+.page-nav a:hover {
+  color: #e8edf4;
+}
+.page-nav a[aria-current="page"] {
+  color: #4da3ff;
+  font-weight: 600;
+}

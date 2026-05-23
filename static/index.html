@@ -6,9 +6,9 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0a0d12">
   <title>Nout Panel</title>
-  <link rel="stylesheet" href="/xterm.min.css">
+  <link rel="stylesheet" href="/page-nav.css">
   <style>
-    /* Тёмная тема — комфортно ночью, без ослепляющего белого */
+    /* Тёмная тема — компактный мониторинг */
     :root {
       color-scheme: dark;
       --bg: #0a0d12;
@@ -20,250 +20,20 @@
       --ok: #3dd68c;
       --warn: #f0b429;
       --danger: #f56565;
-      --touch: 44px;
     }
     * { box-sizing: border-box; }
-    body.dash-body {
+    body {
       margin: 0;
       min-height: 100dvh;
       font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 0;
-      display: flex;
-      flex-direction: column;
       -webkit-font-smoothing: antialiased;
     }
-    .dashboard {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-    }
-    .dashboard-main {
-      flex: 1;
-      min-width: 0;
-      overflow-y: auto;
-      padding: max(.75rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
-        max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
-    }
-    .wrap { max-width: 56rem; margin: 0 auto; padding-top: 1rem; }
-    .dashboard-chat {
-      display: flex;
-      flex-direction: column;
-      min-height: 320px;
-      max-height: 50vh;
-      border-top: 1px solid var(--card-border);
-      background: #0e1219;
-    }
-    @media (min-width: 960px) {
-      .dashboard { flex-direction: row; align-items: stretch; }
-      .dashboard-main {
-        flex: 1;
-        max-height: 100dvh;
-      }
-      .dashboard-chat {
-        width: min(400px, 38vw);
-        flex-shrink: 0;
-        max-height: none;
-        height: auto;
-        align-self: stretch;
-        border-top: none;
-        border-left: 1px solid var(--card-border);
-      }
-    }
-    .section-title {
-      margin: 1.5rem 0 .75rem;
-      font-size: .8rem;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-    .control-grid {
-      display: grid;
-      gap: 1rem;
-    }
-    @media (min-width: 720px) {
-      .control-grid { grid-template-columns: 1fr 1fr; }
-      .control-span-2 { grid-column: 1 / -1; }
-    }
-    #terminal-wrap {
-      height: min(260px, 38vh);
-      min-height: 160px;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #000;
-      padding: 4px;
-    }
-    .btn-ctl {
-      min-height: var(--touch);
-      padding: 0 .75rem;
-      border-radius: 10px;
-      border: 1px solid var(--card-border);
-      background: #0d1118;
-      color: var(--text);
-      font-size: .85rem;
-      cursor: pointer;
-      touch-action: manipulation;
-      margin: .2rem .3rem .2rem 0;
-    }
-    .btn-ctl.danger { border-color: rgba(245,101,101,.4); color: var(--danger); }
-    .btn-ctl.warn { border-color: rgba(240,180,41,.4); color: var(--warn); }
-    .file-toolbar { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .5rem; }
-    .file-path { font-size: .75rem; color: var(--muted); word-break: break-all; margin-bottom: .35rem; }
-    .file-list {
-      list-style: none; padding: 0; margin: 0;
-      max-height: 200px; overflow: auto;
-    }
-    .file-list li {
-      display: flex; align-items: center; gap: .4rem;
-      padding: .4rem .25rem; border-bottom: 1px solid var(--card-border);
-      font-size: .85rem;
-    }
-    .file-list a { color: var(--accent); text-decoration: none; flex: 1; word-break: break-all; }
-    .muted-li { color: var(--muted); }
-    .hint { font-size: .75rem; color: var(--muted); margin: .4rem 0 0; }
-    .screen-preview { max-width: 100%; border-radius: 8px; margin-top: .5rem; }
-    .chat-head {
-      padding: .65rem 1rem;
-      border-bottom: 1px solid var(--card-border);
-      flex-shrink: 0;
-    }
-    .chat-head h2 { margin: 0; font-size: 1rem; }
-    .chat-head p { margin: .15rem 0 0; font-size: .72rem; color: var(--muted); }
-    #chat-banner {
-      padding: .5rem 1rem;
-      background: rgba(240,180,41,.12);
-      color: var(--warn);
-      font-size: .8rem;
-      flex-shrink: 0;
-    }
-    #chat-banner[hidden] { display: none !important; }
-    #chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: .75rem;
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-      min-height: 0;
-    }
-    .chat-msg {
-      max-width: 95%;
-      padding: .55rem .75rem;
-      border-radius: 12px;
-      font-size: .88rem;
-      line-height: 1.4;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .chat-msg.user { align-self: flex-end; background: #1e3a5f; }
-    .chat-msg.bot { align-self: flex-start; background: #1a2332; border: 1px solid var(--card-border); }
-    .chat-msg.thinking { color: var(--muted); font-style: italic; }
-    .chat-foot {
-      padding: .55rem;
-      border-top: 1px solid var(--card-border);
-      display: flex;
-      gap: .45rem;
-      flex-shrink: 0;
-      background: var(--card);
-    }
-    #chat-input {
-      flex: 1;
-      min-height: 44px;
-      max-height: 100px;
-      padding: .5rem .65rem;
-      border-radius: 10px;
-      border: 1px solid var(--card-border);
-      background: #0a0e14;
-      color: var(--text);
-      font: inherit;
-      resize: none;
-    }
-    #chat-send {
-      min-width: 44px;
-      min-height: 44px;
-      border: none;
-      border-radius: 10px;
-      background: var(--accent);
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    #chat-send:disabled { opacity: .5; }
-    .settings-grid {
-      display: grid;
-      gap: 1rem;
-    }
-    @media (min-width: 720px) {
-      .settings-grid { grid-template-columns: 1fr 1fr; }
-      .settings-span-2 { grid-column: 1 / -1; }
-    }
-    .field { margin-bottom: .65rem; }
-    .field label {
-      display: block;
-      font-size: .75rem;
-      color: var(--muted);
-      margin-bottom: .2rem;
-    }
-    .field input {
-      width: 100%;
-      min-height: 40px;
-      padding: .45rem .6rem;
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      background: #080b10;
-      color: var(--text);
-      font-size: .9rem;
-    }
-    .field input:read-only { opacity: .65; }
-    .row-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .45rem;
-      margin-top: .45rem;
-    }
-    .btn-set {
-      min-height: 40px;
-      padding: 0 .85rem;
-      border-radius: 10px;
-      border: 1px solid var(--card-border);
-      background: #0d1118;
-      color: var(--text);
-      font-size: .85rem;
-      cursor: pointer;
-    }
-    .btn-set.primary { border-color: #2a5080; background: #152238; color: var(--accent); }
-    .btn-set.danger { border-color: #5a3030; background: #1a1010; color: var(--warn); }
-    .status-line { font-size: .85rem; margin: .2rem 0; }
-    .status-line.ok { color: var(--ok); }
-    .status-line.err { color: var(--danger); }
-    #log-box {
-      margin: 0;
-      padding: .6rem;
-      max-height: 200px;
-      overflow: auto;
-      font-size: .7rem;
-      line-height: 1.35;
-      background: #080b10;
-      border-radius: 8px;
-      white-space: pre-wrap;
-      word-break: break-all;
-      color: var(--muted);
-    }
-    #toast {
-      position: fixed;
-      bottom: max(1rem, env(safe-area-inset-bottom));
-      left: 50%;
-      transform: translateX(-50%);
-      padding: .5rem 1rem;
-      border-radius: 8px;
-      background: #1a2332;
-      border: 1px solid var(--card-border);
-      font-size: .85rem;
-      display: none;
-      z-index: 20;
+    .wrap {
+      max-width: 40rem;
+      margin: 0 auto;
+      padding: .75rem 1rem 2rem;
     }
     h1 { margin: 0; font-size: clamp(1.25rem, 4vw, 1.5rem); word-break: break-word; }
     .sub { color: var(--muted); font-size: .875rem; margin: .25rem 0 1rem; line-height: 1.4; }
@@ -277,29 +47,19 @@
       font-weight: 500;
     }
     .badge.offline { background: rgba(245, 101, 101, .12); color: var(--danger); }
-    .grid { display: grid; gap: .65rem; }
     .card {
       background: var(--card);
       border: 1px solid var(--card-border);
       border-radius: 12px;
-      padding: 1rem 1.15rem;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, .25);
-    }
-    .card.metrics-compact {
       padding: .6rem .75rem;
-      box-shadow: none;
     }
     .card h2 {
-      margin: 0 0 .85rem;
-      font-size: .8rem;
+      margin: 0 0 .5rem;
+      font-size: .68rem;
       font-weight: 600;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: .06em;
-    }
-    .metrics-compact h2 {
-      margin: 0 0 .5rem;
-      font-size: .68rem;
     }
     .metrics-head {
       display: flex;
@@ -309,10 +69,7 @@
       margin-bottom: .5rem;
       flex-wrap: wrap;
     }
-    .metrics-time {
-      font-size: .65rem;
-      color: var(--muted);
-    }
+    .metrics-time { font-size: .65rem; color: var(--muted); }
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -321,9 +78,7 @@
     @media (min-width: 480px) {
       .stat-grid { grid-template-columns: repeat(4, 1fr); }
     }
-    .stat {
-      min-width: 0;
-    }
+    .stat { min-width: 0; }
     .stat-lbl {
       display: block;
       font-size: .62rem;
@@ -355,6 +110,8 @@
       background: var(--accent);
       transition: width .35s ease;
     }
+    .bar-fill.warn { background: var(--warn); }
+    .bar-fill.danger { background: var(--danger); }
     .chart-compact {
       position: relative;
       height: 72px;
@@ -365,7 +122,6 @@
       margin-top: .25rem;
       margin-bottom: 0;
     }
-    .chart-compact-temp[hidden],
     .chart-compact-temp-wrap[hidden] { display: none !important; }
     .temps-inline {
       display: flex;
@@ -375,8 +131,6 @@
       font-size: .65rem;
       color: var(--muted);
     }
-    .temps-inline .t { opacity: .9; }
-    .temps-inline .na { font-style: italic; opacity: .7; }
     .disks-compact { display: flex; flex-direction: column; gap: .3rem; }
     .disk-row {
       display: grid;
@@ -396,32 +150,6 @@
       font-variant-numeric: tabular-nums;
       color: var(--muted);
     }
-    .btn-copy {
-      flex-shrink: 0;
-      min-height: var(--touch);
-      min-width: var(--touch);
-      padding: 0 .75rem;
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      background: #0d1118;
-      color: var(--muted);
-      font-size: .8rem;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-    .btn-copy:active, .btn-copy.copied {
-      border-color: var(--ok);
-      color: var(--ok);
-    }
-    .bar-fill.warn { background: var(--warn); }
-    .bar-fill.danger { background: var(--danger); }
-    .footer {
-      margin-top: 1.25rem;
-      font-size: .75rem;
-      color: var(--muted);
-      text-align: center;
-      line-height: 1.6;
-    }
     .panel-meta {
       margin-top: .35rem;
       font-size: .62rem;
@@ -431,180 +159,61 @@
     a { color: var(--accent); }
   </style>
 </head>
-<body class="dash-body">
-  <div class="dashboard">
-    <main class="dashboard-main">
+<body>
+  <nav class="page-nav" aria-label="Разделы">
+    <a href="/" data-page>Мониторинг</a>
+    <a href="/remote" data-page>Управление</a>
+    <a href="/chat" data-page>Чат</a>
+    <a href="/settings" data-page>Настройки</a>
+  </nav>
   <div class="wrap">
     <h1 id="host-title">Nout Panel</h1>
-    <p class="sub">Мониторинг · управление · чат</p>
+    <p class="sub">Нагрузка, диски, температура · обновление ~1 с</p>
 
-    <div class="grid">
-      <div class="card metrics-compact">
-        <div class="metrics-head">
-          <h2>Нагрузка</h2>
-          <span class="badge" id="status">…</span>
-          <span class="metrics-time" id="updated">—</span>
+    <div class="card metrics-compact">
+      <div class="metrics-head">
+        <h2>Нагрузка</h2>
+        <span class="badge" id="status">…</span>
+        <span class="metrics-time" id="updated">—</span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat">
+          <span class="stat-lbl">CPU</span>
+          <span class="stat-val" id="cpu-val">—</span>
+          <div class="bar mini"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div>
         </div>
-        <div class="stat-grid">
-          <div class="stat">
-            <span class="stat-lbl">CPU</span>
-            <span class="stat-val" id="cpu-val">—</span>
-            <div class="bar mini"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div>
-          </div>
-          <div class="stat">
-            <span class="stat-lbl">ОЗУ</span>
-            <span class="stat-val" id="ram-val">—</span>
-            <div class="bar mini"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div>
-          </div>
-          <div class="stat">
-            <span class="stat-lbl">Load</span>
-            <span class="stat-val" id="load-val">—</span>
-            <div class="bar mini"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
-          </div>
-          <div class="stat" id="battery-stat" hidden>
-            <span class="stat-lbl">Бат</span>
-            <span class="stat-val" id="battery-val">—</span>
-            <div class="bar mini"><div class="bar-fill" id="battery-bar" style="width:0%"></div></div>
-          </div>
+        <div class="stat">
+          <span class="stat-lbl">ОЗУ</span>
+          <span class="stat-val" id="ram-val">—</span>
+          <div class="bar mini"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div>
         </div>
+        <div class="stat">
+          <span class="stat-lbl">Load</span>
+          <span class="stat-val" id="load-val">—</span>
+          <div class="bar mini"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
+        </div>
+        <div class="stat" id="battery-stat" hidden>
+          <span class="stat-lbl">Бат</span>
+          <span class="stat-val" id="battery-val">—</span>
+          <div class="bar mini"><div class="bar-fill" id="battery-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="chart-compact">
+        <canvas id="chart-load" aria-label="CPU, ОЗУ, load"></canvas>
+      </div>
+      <div class="chart-compact-temp-wrap" id="temp-chart-wrap" hidden>
         <div class="chart-compact">
-          <canvas id="chart-load" aria-label="CPU, ОЗУ, load"></canvas>
+          <canvas id="chart-temp" aria-label="Температура"></canvas>
         </div>
-        <div class="chart-compact-temp-wrap" id="temp-chart-wrap" hidden>
-          <div class="chart-compact">
-            <canvas id="chart-temp" aria-label="Температура"></canvas>
-          </div>
-        </div>
-        <div id="temps" class="temps-inline"></div>
-        <div id="disks" class="disks-compact">…</div>
-        <p class="panel-meta" id="panel-process" hidden></p>
       </div>
+      <div id="temps" class="temps-inline"></div>
+      <div id="disks" class="disks-compact">…</div>
+      <p class="panel-meta" id="panel-process" hidden></p>
     </div>
-
-    <h2 class="section-title">Управление</h2>
-    <div class="control-grid">
-      <div class="card control-span-2">
-        <h2>Терминал</h2>
-        <div id="terminal-wrap"></div>
-        <p class="hint">Shell на ноуте</p>
-        <button type="button" class="btn-ctl" id="term-new">Новая сессия</button>
-      </div>
-      <div class="card">
-        <h2>Файлы</h2>
-        <div class="file-toolbar">
-          <button type="button" class="btn-ctl" id="file-up">↑</button>
-          <button type="button" class="btn-ctl" id="file-refresh">↻</button>
-          <label class="btn-ctl">Загрузить<input type="file" id="file-input" hidden></label>
-        </div>
-        <div class="file-path" id="file-path">—</div>
-        <ul class="file-list" id="file-list"></ul>
-      </div>
-      <div class="card">
-        <h2>Питание</h2>
-        <button type="button" class="btn-ctl warn" data-power="suspend" data-confirm="SUSPEND">Сон</button>
-        <button type="button" class="btn-ctl danger" data-power="reboot" data-confirm="REBOOT">Перезагрузка</button>
-        <button type="button" class="btn-ctl danger" data-power="shutdown" data-confirm="SHUTDOWN">Выключить</button>
-        <h2 style="margin-top:1rem">Экран</h2>
-        <button type="button" class="btn-ctl" id="screen-shot">Скриншот</button>
-        <p class="hint" id="screen-hint">—</p>
-        <img id="screen-img" class="screen-preview" alt="" hidden>
-      </div>
-    </div>
-
-    <h2 class="section-title">Настройки</h2>
-    <div class="settings-grid">
-      <div class="card">
-        <h2>Статус</h2>
-        <p class="status-line" id="info-line">—</p>
-        <p class="status-line" id="agent-line"></p>
-        <button type="button" class="btn-set danger" id="btn-restart">Перезапустить панель</button>
-      </div>
-      <div class="card">
-        <h2>Логи</h2>
-        <pre id="log-box">—</pre>
-        <div class="row-actions">
-          <button type="button" class="btn-set" id="btn-refresh-logs">Обновить</button>
-          <label style="font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.3rem">
-            <input type="checkbox" id="log-auto" checked> авто
-          </label>
-        </div>
-      </div>
-      <div class="card settings-span-2">
-        <h2>Параметры</h2>
-        <form id="cfg-form">
-          <div class="settings-grid" style="margin:0">
-            <div class="field">
-              <label>Пользователь</label>
-              <input id="f-PANEL_USER" readonly>
-            </div>
-            <div class="field">
-              <label>Каталог панели</label>
-              <input id="f-INSTALL_DIR" readonly>
-            </div>
-            <div class="field">
-              <label>Порт HTTP</label>
-              <input id="f-PANEL_PORT" inputmode="numeric">
-            </div>
-            <div class="field">
-              <label>Интервал метрик (сек)</label>
-              <input id="f-PANEL_METRICS_INTERVAL" inputmode="decimal">
-            </div>
-            <div class="field">
-              <label>Файл логов</label>
-              <input id="f-PANEL_LOG_FILE">
-            </div>
-            <div class="field">
-              <label>Ротация (МБ)</label>
-              <input id="f-PANEL_LOG_MAX_MB" inputmode="numeric">
-            </div>
-            <div class="field">
-              <label>Архивов логов</label>
-              <input id="f-PANEL_LOG_BACKUP_COUNT" inputmode="numeric">
-            </div>
-            <div class="field">
-              <label>Корни файлов (:)</label>
-              <input id="f-PANEL_FILE_ROOTS">
-            </div>
-            <div class="field">
-              <label>Папка Agent</label>
-              <input id="f-PANEL_AGENT_WORKSPACE">
-            </div>
-            <div class="field">
-              <label>Данные чата</label>
-              <input id="f-PANEL_CHAT_DIR">
-            </div>
-          </div>
-          <div class="row-actions">
-            <button type="submit" class="btn-set primary">Сохранить и применить</button>
-            <button type="button" class="btn-set" id="btn-save-only">Только сохранить</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-  </div>
-    </main>
-
-    <aside class="dashboard-chat" aria-label="Чат с Cursor Agent">
-      <div class="chat-head">
-        <h2>Cursor Agent</h2>
-        <p id="chat-workspace">—</p>
-      </div>
-      <div id="chat-banner" hidden></div>
-      <div id="chat-messages"></div>
-      <div class="chat-foot">
-        <textarea id="chat-input" rows="1" placeholder="Задача для ноута…"></textarea>
-        <button type="button" id="chat-send">→</button>
-      </div>
-    </aside>
   </div>
 
-  <div id="toast"></div>
+  <script src="/page-nav.js"></script>
   <script src="/chart.umd.min.js"></script>
-  <script src="/xterm.min.js"></script>
-  <script src="/panel-remote.js"></script>
-  <script src="/panel-chat.js"></script>
-  <script src="/panel-settings.js"></script>
   <script>
     // Экранирование для безопасной вставки в HTML
     function esc(s) {
@@ -692,7 +301,6 @@
       setBar('battery-bar', bat.percent);
     }
 
-    // Chart.js — тёмные графики истории
     const chartColors = {
       cpu: '#4da3ff',
       ram: '#3dd68c',
@@ -707,9 +315,7 @@
       maintainAspectRatio: false,
       animation: false,
       interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-      },
+      plugins: { legend: { display: false } },
       scales: {
         x: {
           ticks: { color: chartColors.text, maxTicksLimit: 6, maxRotation: 0 },
@@ -737,10 +343,7 @@
 
     function initCharts() {
       if (typeof Chart === 'undefined') return;
-      const ctxLoad = document.getElementById('chart-load');
-      const ctxTemp = document.getElementById('chart-temp');
-
-      chartLoad = new Chart(ctxLoad, {
+      chartLoad = new Chart(document.getElementById('chart-load'), {
         type: 'line',
         data: {
           labels: [],
@@ -752,8 +355,7 @@
         },
         options: chartDefaults,
       });
-
-      chartTemp = new Chart(ctxTemp, {
+      chartTemp = new Chart(document.getElementById('chart-temp'), {
         type: 'line',
         data: {
           labels: [],
@@ -765,11 +367,7 @@
           ...chartDefaults,
           scales: {
             x: chartDefaults.scales.x,
-            y: {
-              min: 0,
-              ticks: { color: chartColors.text },
-              grid: { color: chartColors.grid },
-            },
+            y: { min: 0, ticks: { color: chartColors.text }, grid: { color: chartColors.grid } },
           },
         },
       });

@@ -85,8 +85,11 @@ def main() -> int:
         ("status", _check_status),
         ("metrics", _check_metrics),
         ("index", lambda: _check_html("/")),
-        ("nav.js", lambda: _check_html("/nav.js")),
-        ("nav.css", lambda: _check_html("/nav.css")),
+        ("remote", lambda: _check_html("/remote")),
+        ("chat", lambda: _check_html("/chat")),
+        ("settings", lambda: _check_html("/settings")),
+        ("page-nav.js", lambda: _check_html("/page-nav.js")),
+        ("page-nav.css", lambda: _check_html("/page-nav.css")),
     ]
     failed = 0
     for name, fn in tests:

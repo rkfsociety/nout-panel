@@ -2,11 +2,202 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0;url=/">
-  <title>Перенаправление…</title>
-  <script>location.replace('/');</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Настройки — Nout Panel</title>
+  <link rel="stylesheet" href="/page-nav.css">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0a0d12;
+      --card: #141b26;
+      --border: rgba(255,255,255,.08);
+      --accent: #4da3ff;
+      --text: #e8edf4;
+      --muted: #7d8fa8;
+      --ok: #3ecf8e;
+      --warn: #f0a8a8;
+      --touch: 44px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 0 1rem 2rem;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; padding-top: .75rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 .25rem; }
+    .sub { color: var(--muted); font-size: .85rem; margin: 0 0 1rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .card h2 {
+      margin: 0 0 .75rem;
+      font-size: .75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .field { margin-bottom: .75rem; }
+    .field label {
+      display: block;
+      font-size: .8rem;
+      color: var(--muted);
+      margin-bottom: .25rem;
+    }
+    .field input {
+      width: 100%;
+      min-height: var(--touch);
+      padding: .5rem .65rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #080b10;
+      color: var(--text);
+      font-size: 1rem;
+    }
+    .field input:read-only { opacity: .7; }
+    .row-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+    .btn-set {
+      min-height: var(--touch);
+      padding: 0 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0d1118;
+      color: var(--text);
+      font-size: .9rem;
+      cursor: pointer;
+    }
+    .btn-set.primary { border-color: #2a5080; background: #152238; color: var(--accent); }
+    .btn-set.danger { border-color: #5a3030; background: #1a1010; color: var(--warn); }
+    .status-line { font-size: .9rem; margin: .2rem 0; }
+    .status-line.ok { color: var(--ok); }
+    .status-line.err { color: var(--warn); }
+    #log-box {
+      margin: 0;
+      padding: .65rem;
+      max-height: 280px;
+      overflow: auto;
+      font-size: .72rem;
+      line-height: 1.35;
+      background: #080b10;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--muted);
+    }
+    #toast {
+      position: fixed;
+      bottom: max(1rem, env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      padding: .5rem 1rem;
+      border-radius: 8px;
+      background: #1a2332;
+      border: 1px solid var(--border);
+      font-size: .85rem;
+      display: none;
+      z-index: 10;
+    }
+    .settings-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 600px) {
+      .settings-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <p><a href="/">На главную</a> — всё на одной странице.</p>
+  <nav class="page-nav" aria-label="Разделы">
+    <a href="/" data-page>Мониторинг</a>
+    <a href="/remote" data-page>Управление</a>
+    <a href="/chat" data-page>Чат</a>
+    <a href="/settings" data-page>Настройки</a>
+  </nav>
+  <div class="wrap">
+    <h1>Настройки</h1>
+    <p class="sub">Конфиг, логи, перезапуск панели</p>
+
+    <div class="settings-grid cols-2">
+      <div class="card">
+        <h2>Статус</h2>
+        <p class="status-line" id="info-line">—</p>
+        <p class="status-line" id="agent-line"></p>
+        <button type="button" class="btn-set danger" id="btn-restart">Перезапустить панель</button>
+      </div>
+      <div class="card">
+        <h2>Логи</h2>
+        <pre id="log-box">—</pre>
+        <div class="row-actions">
+          <button type="button" class="btn-set" id="btn-refresh-logs">Обновить</button>
+          <label style="font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:.35rem">
+            <input type="checkbox" id="log-auto" checked> авто
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Параметры</h2>
+      <form id="cfg-form">
+        <div class="settings-grid cols-2">
+          <div class="field">
+            <label>Пользователь</label>
+            <input id="f-PANEL_USER" readonly>
+          </div>
+          <div class="field">
+            <label>Каталог панели</label>
+            <input id="f-INSTALL_DIR" readonly>
+          </div>
+          <div class="field">
+            <label>Порт HTTP</label>
+            <input id="f-PANEL_PORT" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label>Интервал метрик (сек)</label>
+            <input id="f-PANEL_METRICS_INTERVAL" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label>Файл логов</label>
+            <input id="f-PANEL_LOG_FILE">
+          </div>
+          <div class="field">
+            <label>Ротация логов (МБ)</label>
+            <input id="f-PANEL_LOG_MAX_MB" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label>Архивов логов</label>
+            <input id="f-PANEL_LOG_BACKUP_COUNT" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label>Корни файлов (:)</label>
+            <input id="f-PANEL_FILE_ROOTS">
+          </div>
+          <div class="field">
+            <label>Папка Cursor Agent</label>
+            <input id="f-PANEL_AGENT_WORKSPACE">
+          </div>
+          <div class="field">
+            <label>Данные чата</label>
+            <input id="f-PANEL_CHAT_DIR">
+          </div>
+        </div>
+        <div class="row-actions">
+          <button type="submit" class="btn-set primary">Сохранить и применить</button>
+          <button type="button" class="btn-set" id="btn-save-only">Только сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div id="toast"></div>
+
+  <script src="/page-nav.js"></script>
+  <script src="/panel-settings.js"></script>
 </body>
 </html>
