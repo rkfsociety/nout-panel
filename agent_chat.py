@@ -18,11 +18,18 @@ from panel_log import setup_logging
 
 _log = setup_logging("nout-panel.chat")
 
-_DATA_DIR = Path(os.environ.get("PANEL_CHAT_DIR", Path.home() / ".local/share/nout-panel"))
+
+def _env_path(key: str, default: Path) -> Path:
+    """Путь из переменной окружения или значение по умолчанию."""
+    raw = os.environ.get(key)
+    if raw:
+        return Path(raw).expanduser().resolve()
+    return default.resolve()
+
+
+_DATA_DIR = _env_path("PANEL_CHAT_DIR", Path.home() / ".local/share/nout-panel")
 _SESSIONS_FILE = _DATA_DIR / "chat_sessions.json"
-_WORKSPACE = Path(
-    os.environ.get("PANEL_AGENT_WORKSPACE", Path(__file__).resolve().parent.parent)
-).resolve()
+_WORKSPACE = _env_path("PANEL_AGENT_WORKSPACE", Path(__file__).resolve().parent.parent)
 
 _jobs: dict[str, _Job] = {}
 _jobs_lock = threading.Lock()
@@ -50,7 +57,7 @@ def agent_status() -> dict[str, Any]:
         return {
             "ok": True,
             "available": True,
-            "workspace": str(_WORKSPACE),
+            "workspace": _WORKSPACE.as_posix(),
             "hint": None,
             "via": "CURSOR_API_KEY",
         }
@@ -68,7 +75,7 @@ def agent_status() -> dict[str, Any]:
         return {
             "ok": True,
             "available": logged_in,
-            "workspace": str(_WORKSPACE),
+            "workspace": _WORKSPACE.as_posix(),
             "hint": None
             if logged_in
             else "На ноуте: cursor agent login (один раз, с браузером или SSH)",
@@ -119,7 +126,7 @@ def create_session(title: str = "Чат с телефона") -> dict[str, Any]:
             capture_output=True,
             text=True,
             timeout=90,
-            cwd=str(_WORKSPACE),
+            cwd=os.fspath(_WORKSPACE),
         )
         chat_id = _parse_chat_id((r.stdout or "") + (r.stderr or ""))
         if not chat_id:
@@ -145,7 +152,7 @@ def _run_agent_thread(job: _Job, message: str) -> None:
         "--output-format",
         "text",
         "--workspace",
-        str(_WORKSPACE),
+        os.fspath(_WORKSPACE),
         "--resume",
         job.session_id,
         message,
@@ -156,7 +163,7 @@ def _run_agent_thread(job: _Job, message: str) -> None:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            cwd=str(_WORKSPACE),
+            cwd=os.fspath(_WORKSPACE),
             env=os.environ.copy(),
         )
         job.proc = proc
@@ -171,7 +178,7 @@ def _run_agent_thread(job: _Job, message: str) -> None:
             job.status = "done" if code == 0 else "error"
             if code != 0 and not job.output.strip():
                 job.error = f"код выхода {code}"
-    except Exception as exc:  # noqa: BLE001
+    except (OSError, subprocess.SubprocessError) as exc:
         with _jobs_lock:
             job.status = "error"
             job.error = str(exc)

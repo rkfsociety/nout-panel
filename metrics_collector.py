@@ -65,6 +65,24 @@ _SKIP_FSTYPES = frozenset(
 # Префиксы путей, не показываем в панели
 _SKIP_MOUNT_PREFIXES = ("/proc", "/sys", "/dev", "/run", "/snap")
 
+# Пути /proc и /sys — через pathlib
+_PROC_STAT = Path("/proc/stat")
+_PROC_MEMINFO = Path("/proc/meminfo")
+_PROC_LOADAVG = Path("/proc/loadavg")
+_PROC_MOUNTS = Path("/proc/mounts")
+_SYS_THERMAL = Path("/sys/class/thermal")
+_SYS_POWER = Path("/sys/class/power_supply")
+
+# Ошибки сбора метрик — ловим явно, без except Exception
+_COLLECTOR_ERRORS = (
+    OSError,
+    ValueError,
+    TypeError,
+    KeyError,
+    IndexError,
+    ZeroDivisionError,
+)
+
 _cache: dict[str, Any] = {"ok": False}
 _history: deque[dict[str, Any]] = deque(maxlen=HISTORY_MAXLEN)
 _lock = threading.Lock()
@@ -76,7 +94,7 @@ def _safe(label: str, fn: Callable[[], Any], default: Any) -> Any:
     """Вызов сборщика: при ошибке — default и запись в лог, без падения."""
     try:
         return fn()
-    except Exception as exc:  # noqa: BLE001 — отдельные датчики не роняют цикл
+    except _COLLECTOR_ERRORS as exc:
         _log.warning("%s: %s", label, exc)
         return default
 
@@ -106,8 +124,7 @@ def _battery_na() -> dict[str, Any]:
 
 def _read_cpu_jiffies() -> tuple[int, int]:
     """Сумма jiffies CPU и idle из /proc/stat."""
-    with open("/proc/stat", encoding="utf-8") as f:
-        parts = f.readline().split()
+    parts = _PROC_STAT.read_text(encoding="utf-8").splitlines()[0].split()
     # cpu user nice system idle iowait irq softirq ...
     nums = [int(x) for x in parts[1:]]
     idle = nums[3] + (nums[4] if len(nums) > 4 else 0)
@@ -133,10 +150,9 @@ def _cpu_percent() -> float | None:
 def _memory() -> dict[str, Any]:
     """ОЗУ и swap из /proc/meminfo (кБ)."""
     info: dict[str, int] = {}
-    with open("/proc/meminfo", encoding="utf-8") as f:
-        for line in f:
-            key, rest = line.split(":", 1)
-            info[key] = int(rest.strip().split()[0])
+    for line in _PROC_MEMINFO.read_text(encoding="utf-8").splitlines():
+        key, rest = line.split(":", 1)
+        info[key] = int(rest.strip().split()[0])
 
     total_kb = info.get("MemTotal", 0)
     avail_kb = info.get("MemAvailable", info.get("MemFree", 0))
@@ -162,7 +178,7 @@ def _memory() -> dict[str, Any]:
 
 def _load() -> dict[str, Any]:
     """Средняя загрузка и число ядер."""
-    parts = open("/proc/loadavg", encoding="utf-8").read().split()
+    parts = _PROC_LOADAVG.read_text(encoding="utf-8").split()
     cores = os.cpu_count() or 1
     load1 = float(parts[0])
     return {
@@ -177,13 +193,11 @@ def _load() -> dict[str, Any]:
 def _temperatures() -> dict[str, Any]:
     """Температуры из thermal_zone; сбой датчика — пропуск, нет датчиков — N/A."""
     by_label: dict[str, float] = {}
-    base = Path("/sys/class/thermal")
-    if not base.is_dir():
+    if not _SYS_THERMAL.is_dir():
         return _temperatures_na()
-    for name in sorted(os.listdir(base)):
-        if not name.startswith("thermal_zone"):
+    for zone in sorted(_SYS_THERMAL.iterdir(), key=lambda p: p.name):
+        if not zone.name.startswith("thermal_zone"):
             continue
-        zone = base / name
         temp_path = zone / "temp"
         type_path = zone / "type"
         try:
@@ -196,7 +210,7 @@ def _temperatures() -> dict[str, Any]:
             celsius = round(milli / 1000.0, 1)
             if celsius <= 0:
                 continue
-            label = type_path.read_text(encoding="utf-8").strip() if type_path.is_file() else name
+            label = type_path.read_text(encoding="utf-8").strip() if type_path.is_file() else zone.name
             by_label[label] = max(by_label.get(label, 0.0), celsius)
         except (OSError, ValueError, TypeError):
             # Отдельная зона недоступна — не прерываем сбор остальных
@@ -209,8 +223,7 @@ def _temperatures() -> dict[str, Any]:
 
 def _battery() -> dict[str, Any]:
     """Заряд батареи из power_supply (ноутбук); на ПК без BAT — N/A."""
-    base = Path("/sys/class/power_supply")
-    if not base.is_dir():
+    if not _SYS_POWER.is_dir():
         return _battery_na()
     status_labels = {
         "charging": "зарядка",
@@ -219,10 +232,9 @@ def _battery() -> dict[str, Any]:
         "not charging": "не заряжается",
         "unknown": "неизвестно",
     }
-    for name in sorted(os.listdir(base)):
-        if not name.upper().startswith("BAT"):
+    for root in sorted(_SYS_POWER.iterdir(), key=lambda p: p.name):
+        if not root.name.upper().startswith("BAT"):
             continue
-        root = base / name
         cap_path = root / "capacity"
         status_path = root / "status"
         try:
@@ -249,24 +261,24 @@ def _disks() -> list[dict[str, Any]]:
     """Занятость смонтированных разделов."""
     seen: set[str] = set()
     mounts: list[tuple[str, str, str]] = []
-    with open("/proc/mounts", encoding="utf-8") as f:
-        for line in f:
-            parts = line.split()
-            if len(parts) < 3:
-                continue
-            dev, mnt, fstype = parts[0], parts[1], parts[2]
-            if fstype in _SKIP_FSTYPES:
-                continue
-            if any(mnt.startswith(p) for p in _SKIP_MOUNT_PREFIXES):
-                continue
-            if mnt in seen or not os.path.isdir(mnt):
-                continue
-            try:
-                usage = shutil.disk_usage(mnt)
-            except OSError:
-                continue
-            seen.add(mnt)
-            mounts.append((dev, mnt, fstype))
+    for line in _PROC_MOUNTS.read_text(encoding="utf-8").splitlines():
+        parts = line.split()
+        if len(parts) < 3:
+            continue
+        dev, mnt, fstype = parts[0], parts[1], parts[2]
+        if fstype in _SKIP_FSTYPES:
+            continue
+        if any(mnt.startswith(p) for p in _SKIP_MOUNT_PREFIXES):
+            continue
+        mnt_path = Path(mnt)
+        if mnt in seen or not mnt_path.is_dir():
+            continue
+        try:
+            shutil.disk_usage(mnt_path)
+        except OSError:
+            continue
+        seen.add(mnt)
+        mounts.append((dev, mnt, fstype))
 
     # Сортируем: / первым, потом /home, остальное по пути
     def sort_key(item: tuple[str, str, str]) -> tuple[int, str]:
@@ -281,7 +293,7 @@ def _disks() -> list[dict[str, Any]]:
 
     disks: list[dict[str, Any]] = []
     for dev, mnt, fstype in mounts:
-        usage = shutil.disk_usage(mnt)
+        usage = shutil.disk_usage(Path(mnt))
         total = usage.total
         if total < 100 * 1024 * 1024:  # меньше 100 МБ — не показываем
             continue
@@ -356,7 +368,7 @@ def _collector_loop() -> None:
                 _cache.clear()
                 _cache.update(data)
                 _append_history(data)
-        except Exception as exc:  # noqa: BLE001 — не роняем поток
+        except _COLLECTOR_ERRORS as exc:
             _log.exception("collector_loop: %s", exc)
             with _lock:
                 _cache.update({"ok": False, "error": str(exc)})

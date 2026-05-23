@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -20,17 +21,18 @@ def capture_png() -> tuple[bytes, str] | None:
     out = tmp / "shot.png"
     try:
         cmds: list[list[str]] = []
+        out_path = os.fspath(out)
         if os.environ.get("WAYLAND_DISPLAY"):
-            cmds.append(["grim", str(out)])
+            cmds.append(["grim", out_path])
         if os.environ.get("DISPLAY"):
             cmds.extend(
                 [
-                    ["scrot", "-o", str(out)],
-                    ["gnome-screenshot", "-f", str(out)],
-                    ["import", "-window", "root", str(out)],
+                    ["scrot", "-o", out_path],
+                    ["gnome-screenshot", "-f", out_path],
+                    ["import", "-window", "root", out_path],
                 ]
             )
-        cmds.append(["fbgrab", str(out)])
+        cmds.append(["fbgrab", out_path])
 
         for cmd in cmds:
             try:
@@ -48,12 +50,10 @@ def capture_png() -> tuple[bytes, str] | None:
                 continue
         return None
     finally:
-        shutil_rmtree(tmp)
+        _rmtree(tmp)
 
 
-def shutil_rmtree(path: Path) -> None:
-    import shutil
-
+def _rmtree(path: Path) -> None:
     try:
         shutil.rmtree(path, ignore_errors=True)
     except OSError:

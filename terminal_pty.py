@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import binascii
 import fcntl
 import os
 import pty
@@ -12,6 +13,7 @@ import termios
 import threading
 import time
 import uuid
+from pathlib import Path
 from typing import Any
 
 from panel_log import setup_logging
@@ -49,9 +51,10 @@ class _TerminalSession:
             os.dup2(slave_fd, 2)
             if slave_fd > 2:
                 os.close(slave_fd)
-            os.chdir(os.path.expanduser("~"))
+            home = Path.home()
+            os.chdir(os.fspath(home))
             os.environ["TERM"] = "xterm-256color"
-            os.environ["HOME"] = os.path.expanduser("~")
+            os.environ["HOME"] = os.fspath(home)
             os.execvpe("/bin/bash", ["/bin/bash", "-l"], os.environ)
         os.close(slave_fd)
         self._reader = threading.Thread(target=self._read_loop, name=f"pty-{self.id}", daemon=True)
@@ -166,7 +169,7 @@ def write_input(session_id: str, data_b64: str) -> bool:
 
     try:
         raw = base64.b64decode(data_b64)
-    except Exception:
+    except (binascii.Error, ValueError):
         return False
     sess.write(raw)
     return True

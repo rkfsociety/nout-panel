@@ -42,11 +42,14 @@ def _inside_root(path: Path) -> bool:
     return False
 
 
-def resolve_path(path_str: str | None) -> Path | None:
+def resolve_path(path_str: str | Path | None) -> Path | None:
     """Безопасный путь внутри разрешённых корней."""
-    if not path_str or path_str in ("/", ""):
+    if path_str is None:
         return None
-    p = Path(path_str).expanduser()
+    text = str(path_str).strip()
+    if text in ("", "/"):
+        return None
+    p = Path(text).expanduser()
     if not p.is_absolute():
         p = (_roots()[0] / p).resolve()
     else:

@@ -325,7 +325,7 @@ class PanelHandler(BaseHTTPRequestHandler):
             self.send_error(404, "Not Found")
         except json.JSONDecodeError:
             self._send_json({"ok": False, "error": "Invalid JSON"}, 400)
-        except Exception as exc:
+        except (ValueError, TypeError, OSError, KeyError) as exc:
             _log.exception("POST %s: %s", path, exc)
             self._send_json({"ok": False, "error": str(exc)}, 500)
 
@@ -343,9 +343,6 @@ def main() -> None:
         httpd.serve_forever()
     except KeyboardInterrupt:
         _log.info("Nout panel stopped (keyboard)")
-    except Exception:
-        _log.exception("Nout panel fatal error")
-        raise
 
 
 if __name__ == "__main__":

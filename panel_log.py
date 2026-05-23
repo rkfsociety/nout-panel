@@ -9,10 +9,16 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 # Путь к логу (install.sh создаёт каталог; значение — в config.local.env)
-_DEFAULT_LOG = Path.home() / ".nout-panel" / "log.txt"
-LOG_PATH = os.environ.get("PANEL_LOG_FILE") or str(_DEFAULT_LOG)
+def _log_path() -> Path:
+    raw = os.environ.get("PANEL_LOG_FILE")
+    if raw:
+        return Path(raw).expanduser()
+    return Path.home() / ".nout-panel" / "log.txt"
 
-# Ротация: размер файла 1–5 МБ и число резервных копий
+
+LOG_PATH = _log_path()
+
+
 def _log_max_bytes() -> int:
     try:
         mb = float(os.environ.get("PANEL_LOG_MAX_MB", "2"))
@@ -49,11 +55,10 @@ def setup_logging(name: str = "nout-panel") -> logging.Logger:
     )
 
     # Основной вывод — файл с ротацией по размеру, не консоль
-    log_file = Path(LOG_PATH).expanduser()
     try:
-        log_file.parent.mkdir(parents=True, exist_ok=True)
+        LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         handler: logging.Handler = RotatingFileHandler(
-            log_file,
+            LOG_PATH,
             maxBytes=_log_max_bytes(),
             backupCount=_log_backup_count(),
             encoding="utf-8",
@@ -64,7 +69,7 @@ def setup_logging(name: str = "nout-panel") -> logging.Logger:
         stream = logging.StreamHandler()
         stream.setFormatter(fmt)
         root.addHandler(stream)
-        root.warning("Не удалось открыть %s — логи в stderr", log_file)
+        root.warning("Не удалось открыть %s — логи в stderr", LOG_PATH)
 
     root.propagate = False
     _CONFIGURED = True
