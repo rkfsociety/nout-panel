@@ -16,17 +16,19 @@ _CONFIGURED = False
 def setup_logging(name: str = "nout-panel") -> logging.Logger:
     """Настроить ротацию логов в файл; без прав — в stderr (локальный запуск)."""
     global _CONFIGURED
-    logger = logging.getLogger(name)
-    if _CONFIGURED:
-        return logger
+    root = logging.getLogger("nout-panel")
+    child = logging.getLogger(name if name.startswith("nout-panel") else f"nout-panel.{name}")
 
-    logger.setLevel(logging.INFO)
+    if _CONFIGURED:
+        return child
+
+    root.setLevel(logging.INFO)
     fmt = logging.Formatter(
         "%(asctime)s %(levelname)s [%(name)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    # Основной вывод — файл, не консоль
+    # Основной вывод — файл, не консоль (один handler на всё дерево nout-panel.*)
     try:
         handler: logging.Handler = RotatingFileHandler(
             LOG_PATH,
@@ -35,14 +37,13 @@ def setup_logging(name: str = "nout-panel") -> logging.Logger:
             encoding="utf-8",
         )
         handler.setFormatter(fmt)
-        logger.addHandler(handler)
+        root.addHandler(handler)
     except OSError:
-        # Нет прав на /var/log — fallback для разработки
         stream = logging.StreamHandler()
         stream.setFormatter(fmt)
-        logger.addHandler(stream)
-        logger.warning("Не удалось открыть %s — логи в stderr", LOG_PATH)
+        root.addHandler(stream)
+        root.warning("Не удалось открыть %s — логи в stderr", LOG_PATH)
 
-    logger.propagate = False
+    root.propagate = False
     _CONFIGURED = True
-    return logger
+    return child
