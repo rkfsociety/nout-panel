@@ -1,0 +1,17 @@
+[Unit]
+Description=Веб-панель домашнего ноута (Nout Panel)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@PANEL_USER@
+Group=@PANEL_USER@
+WorkingDirectory=@INSTALL_DIR@
+ExecStart=/usr/bin/python3 @INSTALL_DIR@/app.py
+EnvironmentFile=-/etc/nout-panel/env
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

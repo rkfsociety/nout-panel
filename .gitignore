@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+
+# Локальная конфигурация (IP, пользователь, пути) — не коммитить
+config.local.env
+.env
+*.local
+
+# Секреты и ключи
+*.pem
+*.key
+id_*
+.ssh/
+
+# Системные/временные
+.DS_Store
+*.log
+*.swp

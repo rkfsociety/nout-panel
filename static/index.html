@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nout Panel</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --accent: #3d9eff;
+      --text: #e7ecf3;
+      --muted: #8b9cb3;
+      --ok: #3dd68c;
+      --warn: #f0b429;
+      --danger: #f56565;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 1.5rem;
+    }
+    .wrap { max-width: 42rem; margin: 0 auto; }
+    h1 { margin: 0; font-size: 1.5rem; }
+    .sub { color: var(--muted); font-size: .9rem; margin: .25rem 0 1rem; }
+    .badge {
+      display: inline-block;
+      background: rgba(61, 214, 140, .15);
+      color: var(--ok);
+      padding: .35rem .75rem;
+      border-radius: 999px;
+      font-size: .85rem;
+      margin-bottom: 1rem;
+    }
+    .badge.offline { background: rgba(245,101,101,.15); color: var(--danger); }
+    .grid { display: grid; gap: 1rem; }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,.4);
+    }
+    .card h2 {
+      margin: 0 0 1rem;
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .metric { margin-bottom: 1rem; }
+    .metric:last-child { margin-bottom: 0; }
+    .metric-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: .9rem;
+      margin-bottom: .35rem;
+    }
+    .bar {
+      height: 8px;
+      background: #0a0e14;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--accent);
+      transition: width .35s ease;
+    }
+    .bar-fill.warn { background: var(--warn); }
+    .bar-fill.danger { background: var(--danger); }
+    .disk {
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding-top: .85rem;
+      margin-top: .85rem;
+    }
+    .disk:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+    .disk-title { font-weight: 600; font-size: .95rem; }
+    .disk-meta { font-size: .8rem; color: var(--muted); margin: .2rem 0 .5rem; }
+    .temps { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+    .temp-chip {
+      font-size: .8rem;
+      background: #0a0e14;
+      padding: .25rem .5rem;
+      border-radius: 6px;
+      color: var(--muted);
+    }
+    .footer {
+      margin-top: 1rem;
+      font-size: .75rem;
+      color: var(--muted);
+      text-align: center;
+    }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 id="host-title">Nout Panel</h1>
+    <p class="sub">Мониторинг · обновление каждую секунду</p>
+    <div class="badge" id="status">Подключение…</div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Загрузка</h2>
+        <div class="metric">
+          <div class="metric-head">
+            <span>CPU</span>
+            <span id="cpu-val">—</span>
+          </div>
+          <div class="bar"><div class="bar-fill" id="cpu-bar" style="width:0%"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head">
+            <span>ОЗУ</span>
+            <span id="ram-val">—</span>
+          </div>
+          <div class="bar"><div class="bar-fill" id="ram-bar" style="width:0%"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-head">
+            <span>Load (1 мин)</span>
+            <span id="load-val">—</span>
+          </div>
+          <div class="bar"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
+        </div>
+        <div id="temps" class="temps"></div>
+      </div>
+
+      <div class="card">
+        <h2>Диски</h2>
+        <div id="disks">Загрузка…</div>
+      </div>
+    </div>
+
+    <p class="footer">
+      <span id="updated">—</span> ·
+      <a href="/api/metrics" target="_blank">JSON</a>
+    </p>
+  </div>
+
+  <script>
+    function barClass(pct) {
+      if (pct >= 90) return 'danger';
+      if (pct >= 75) return 'warn';
+      return '';
+    }
+
+    function setBar(id, pct) {
+      const el = document.getElementById(id);
+      const v = Math.min(100, Math.max(0, pct));
+      el.style.width = v + '%';
+      el.className = 'bar-fill ' + barClass(v);
+    }
+
+    function renderDisks(disks) {
+      const root = document.getElementById('disks');
+      if (!disks || !disks.length) {
+        root.textContent = 'Нет данных о дисках';
+        return;
+      }
+      root.innerHTML = disks.map(d => `
+        <div class="disk">
+          <div class="disk-title">${d.mount}</div>
+          <div class="disk-meta">${d.device} · ${d.fstype} · свободно ${d.free_gb} ГБ из ${d.total_gb} ГБ</div>
+          <div class="metric-head"><span>Занято</span><span>${d.percent}%</span></div>
+          <div class="bar"><div class="bar-fill ${barClass(d.percent)}" style="width:${d.percent}%"></div></div>
+        </div>
+      `).join('');
+    }
+
+    function renderTemps(temps) {
+      const root = document.getElementById('temps');
+      if (!temps || !temps.length) {
+        root.innerHTML = '';
+        return;
+      }
+      root.innerHTML = temps.map(t =>
+        `<span class="temp-chip">${t.name}: ${t.celsius}°C</span>`
+      ).join('');
+    }
+
+    let hostname = 'Nout Panel';
+
+    async function loadHost() {
+      try {
+        const r = await fetch('/api/status', { cache: 'no-store' });
+        const d = await r.json();
+        if (d.hostname) {
+          hostname = d.hostname;
+          document.getElementById('host-title').textContent = hostname;
+          document.title = hostname + ' — Nout Panel';
+        }
+      } catch (_) { /* имя подставится при следующем тике */ }
+    }
+
+    async function tick() {
+      try {
+        const r = await fetch('/api/metrics', { cache: 'no-store' });
+        const d = await r.json();
+        if (!d.ok) throw new Error(d.error || 'API error');
+
+        document.getElementById('status').textContent = 'Онлайн · ' + hostname;
+        document.getElementById('status').className = 'badge';
+
+        const cpu = d.cpu_percent ?? 0;
+        const ram = d.memory.ram_percent;
+        const loadPct = d.load.load_percent;
+
+        document.getElementById('cpu-val').textContent = cpu + '%';
+        document.getElementById('ram-val').textContent =
+          d.memory.ram_used_gb + ' / ' + d.memory.ram_total_gb + ' ГБ (' + ram + '%)';
+        document.getElementById('load-val').textContent =
+          d.load.load_1 + ' · ' + d.load.cpu_cores + ' ядер (' + loadPct + '%)';
+
+        setBar('cpu-bar', cpu);
+        setBar('ram-bar', ram);
+        setBar('load-bar', Math.min(100, loadPct));
+
+        renderDisks(d.disks);
+        renderTemps(d.temperatures);
+
+        const t = new Date(d.time_utc);
+        document.getElementById('updated').textContent =
+          'Обновлено ' + t.toLocaleTimeString('ru-RU');
+      } catch (e) {
+        document.getElementById('status').textContent = 'Нет связи';
+        document.getElementById('status').className = 'badge offline';
+      }
+    }
+
+    loadHost();
+    tick();
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>
