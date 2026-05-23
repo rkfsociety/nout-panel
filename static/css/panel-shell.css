@@ -34,17 +34,25 @@ body.page-shell {
 }
 
 .metrics-bar {
-  max-width: 72rem;
-  margin: 0 auto;
-  padding: 0.35rem 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem clamp(0.65rem, 2vw, 1.25rem);
 }
 
-/* Одна плотная строка на широком экране */
+/* На широком экране — три зоны на всю ширину */
 .metrics-row {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
   align-items: center;
-  gap: 0.4rem 0.85rem;
+  gap: 0.45rem 0.75rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .metrics-row {
+    grid-template-columns: auto minmax(12rem, 1fr) minmax(0, auto);
+    gap: 0.5rem 1rem;
+  }
 }
 
 .metrics-brand {
@@ -85,7 +93,7 @@ body.page-shell {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 10rem;
+  max-width: min(14rem, 28vw);
 }
 
 .badge {
@@ -113,20 +121,28 @@ body.page-shell {
 
 .stat-row {
   display: flex;
-  flex: 1 1 auto;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 0.75rem;
-  min-width: min(100%, 14rem);
+  justify-content: center;
+  gap: 0.45rem 0.85rem;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .stat-row {
+    justify-content: center;
+    gap: 0.5rem 1.25rem;
+  }
 }
 
 .stat-chip {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
+  flex: 1 1 6rem;
   min-width: 5.5rem;
-  flex: 1 1 5.5rem;
-  max-width: 8.5rem;
+  max-width: 14rem;
 }
 
 .stat-lbl {
@@ -148,8 +164,9 @@ body.page-shell {
 }
 
 .stat-chip .bar.mini {
-  flex: 1;
-  min-width: 1.75rem;
+  flex: 1 1 2.5rem;
+  min-width: 2rem;
+  max-width: 8rem;
   height: 3px;
   background: #080b10;
   border-radius: 2px;
@@ -168,17 +185,18 @@ body.page-shell {
 
 .metrics-tail {
   display: flex;
-  flex: 1 1 100%;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem 0.65rem;
+  justify-content: flex-start;
+  gap: 0.4rem 0.75rem;
   min-width: 0;
+  width: 100%;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 768px) {
   .metrics-tail {
-    flex: 1 1 auto;
     justify-content: flex-end;
+    width: auto;
   }
 }
 
@@ -210,10 +228,17 @@ body.page-shell {
 
 .disk-name {
   font-weight: 500;
-  max-width: 2.5rem;
+  min-width: 1.75rem;
+  max-width: 5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (min-width: 1100px) {
+  .disk-name {
+    max-width: 7rem;
+  }
 }
 
 .disk-pct {
@@ -225,8 +250,10 @@ body.page-shell {
 }
 
 .disk-chip .bar.mini {
-  width: 2.75rem;
-  flex-shrink: 0;
+  flex: 1 1 2.5rem;
+  width: auto;
+  min-width: 2.5rem;
+  max-width: 5rem;
   height: 3px;
   background: #080b10;
   border-radius: 2px;
