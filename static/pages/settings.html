@@ -75,6 +75,7 @@
     .status-line { font-size: .9rem; margin: .2rem 0; }
     .status-line.ok { color: var(--ok); }
     .status-line.err { color: var(--warn); }
+    .hint { font-size: .8rem; color: var(--muted); line-height: 1.4; }
     #log-box {
       margin: 0;
       padding: .65rem;
@@ -118,6 +119,22 @@
   <div class="wrap">
     <h1>Настройки</h1>
     <p class="sub">Конфиг, логи, перезапуск панели</p>
+
+    <div class="card">
+      <h2>Пароль sudo</h2>
+      <p class="status-line" id="sudo-line">—</p>
+      <div class="field">
+        <label for="sudo-password">Пароль пользователя Linux (для systemctl и конфига)</label>
+        <input type="password" id="sudo-password" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <p class="hint" style="font-size:.8rem;color:var(--muted);margin:.35rem 0 .5rem">
+        Хранится только в памяти процесса панели до её перезапуска. Не записывается в файл.
+      </p>
+      <div class="row-actions">
+        <button type="button" class="btn-set primary" id="btn-sudo-save">Сохранить пароль</button>
+        <button type="button" class="btn-set" id="btn-sudo-clear">Сбросить</button>
+      </div>
+    </div>
 
     <div class="settings-grid cols-2">
       <div class="card">

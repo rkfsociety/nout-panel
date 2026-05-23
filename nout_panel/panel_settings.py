@@ -10,6 +10,8 @@ from collections import deque
 from pathlib import Path
 from typing import Any
 
+from nout_panel import panel_sudo
+
 try:
     from nout_panel.panel_log import setup_logging
 except ImportError:
@@ -159,19 +161,14 @@ def apply_config() -> dict[str, Any]:
         return {"ok": False, "error": f"Нет файла {_CONFIG_LOCAL}"}
     try:
         cp_bin = shutil.which("cp") or "/usr/bin/cp"
-        proc = subprocess.run(
-            ["sudo", "-n", cp_bin, str(_CONFIG_LOCAL), str(_CONFIG_SYSTEM)],
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
+        proc = panel_sudo.run([cp_bin, str(_CONFIG_LOCAL), str(_CONFIG_SYSTEM)], timeout=15)
     except (FileNotFoundError, OSError, subprocess.TimeoutExpired) as exc:
         return {"ok": False, "error": str(exc)}
     if proc.returncode != 0:
         hint = (proc.stderr or proc.stdout or "").strip()[:300]
         return {
             "ok": False,
-            "error": hint or "Нет прав на cp. На ноуте: sudo ./install.sh",
+            "error": hint or "Нет прав на cp. Укажите пароль sudo в Настройках.",
         }
     _log.warning("config applied to %s", _CONFIG_SYSTEM)
     return {

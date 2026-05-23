@@ -60,6 +60,42 @@
     }
   }
 
+  async function loadSudoStatus() {
+    const line = document.getElementById('sudo-line');
+    if (!line) return;
+    try {
+      const r = await fetch('/api/panel/sudo', { cache: 'no-store' });
+      const d = await r.json();
+      if (d.configured) {
+        line.textContent = 'Пароль sudo сохранён в памяти панели';
+        line.className = 'status-line ok';
+      } else {
+        line.textContent = 'Пароль не задан — перезапуск и «Сохранить и применить» могут не сработать';
+        line.className = 'status-line';
+      }
+    } catch (_) {
+      line.textContent = '—';
+    }
+  }
+
+  async function saveSudoPassword(clear) {
+    const input = document.getElementById('sudo-password');
+    const pwd = clear ? '' : (input && input.value) || '';
+    const r = await fetch('/api/panel/sudo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd }),
+    });
+    const d = await r.json();
+    if (!d.ok) {
+      showToast(d.error || 'Ошибка', true);
+      return;
+    }
+    if (input && clear) input.value = '';
+    showToast(d.message || 'Готово');
+    loadSudoStatus();
+  }
+
   async function loadConfig() {
     const r = await fetch('/api/panel/config', { cache: 'no-store' });
     const d = await r.json();
@@ -129,12 +165,15 @@
   });
   document.getElementById('btn-save-only').addEventListener('click', () => saveConfig(false));
   document.getElementById('btn-refresh-logs').addEventListener('click', loadLogs);
+  document.getElementById('btn-sudo-save').addEventListener('click', () => saveSudoPassword(false));
+  document.getElementById('btn-sudo-clear').addEventListener('click', () => saveSudoPassword(true));
   setInterval(() => {
     if (document.getElementById('log-auto').checked) loadLogs();
   }, 3000);
 
   loadInfo();
   loadAgent();
+  loadSudoStatus();
   loadConfig();
   loadLogs();
 })();

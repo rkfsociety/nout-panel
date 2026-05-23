@@ -16,7 +16,16 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from nout_panel import agent_chat, file_manager, panel_control, panel_settings, power_control, screen_capture, terminal_pty
+from nout_panel import (
+    agent_chat,
+    file_manager,
+    panel_control,
+    panel_settings,
+    panel_sudo,
+    power_control,
+    screen_capture,
+    terminal_pty,
+)
 from nout_panel.metrics_collector import get_metrics, start_collector
 from nout_panel import __version__ as PANEL_VERSION
 
@@ -220,6 +229,9 @@ class PanelHandler(BaseHTTPRequestHandler):
             lines = int(self._q1("lines") or "200")
             self._send_json(panel_settings.tail_logs(lines))
             return
+        if path == "/api/panel/sudo":
+            self._send_json(panel_sudo.status())
+            return
 
         if path == "/api/chat/poll":
             jid = self._q1("job")
@@ -365,6 +377,11 @@ class PanelHandler(BaseHTTPRequestHandler):
             if path == "/api/panel/restart":
                 body = self._read_json()
                 self._send_json(panel_control.restart_panel(body.get("confirm", "")))
+                return
+
+            if path == "/api/panel/sudo":
+                body = self._read_json()
+                self._send_json(panel_sudo.set_password(body.get("password", "")))
                 return
 
             if path == "/api/panel/config":
