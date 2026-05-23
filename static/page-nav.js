@@ -1,7 +1,7 @@
 /* Блоки навигации и подсветка текущей страницы */
 (function () {
   var ITEMS = [
-    { href: '/', mod: 'monitor', title: 'Главная', desc: 'Метрики и управление' },
+    { href: '/', mod: 'home', title: 'Главная', desc: 'Метрики и управление' },
     { href: '/chat', mod: 'chat', title: 'Чат', desc: 'Cursor Agent' },
     { href: '/settings', mod: 'settings', title: 'Настройки', desc: 'Конфиг и логи' },
   ];

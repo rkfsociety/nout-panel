@@ -1,6 +1,6 @@
 /* Боковая навигация — кнопки-блоки слева (на телефоне — полоса сверху) */
 :root {
-  --nav-monitor: #4da3ff;
+  --nav-home: #4da3ff;
   --nav-remote: #3dd68c;
   --nav-chat: #a78bfa;
   --nav-settings: #f0b429;
@@ -83,7 +83,7 @@
   color: #7d8fa8;
   line-height: 1.3;
 }
-.nav-block--monitor { --nav-accent: var(--nav-monitor); }
+.nav-block--home { --nav-accent: var(--nav-home); }
 .nav-block--remote { --nav-accent: var(--nav-remote); }
 .nav-block--chat { --nav-accent: var(--nav-chat); }
 .nav-block--settings { --nav-accent: var(--nav-settings); }
