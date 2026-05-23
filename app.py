@@ -263,6 +263,7 @@ class PanelHandler(BaseHTTPRequestHandler):
             "/nav.js": ("nav.js", "application/javascript; charset=utf-8"),
             "/panel-remote.js": ("panel-remote.js", "application/javascript; charset=utf-8"),
             "/panel-chat.js": ("panel-chat.js", "application/javascript; charset=utf-8"),
+            "/panel-settings.js": ("panel-settings.js", "application/javascript; charset=utf-8"),
         }
         if path in static_map:
             name, ctype = static_map[path]
