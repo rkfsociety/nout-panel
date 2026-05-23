@@ -1,0 +1,36 @@
+/* Вкладки навигации сверху (общие для всех страниц) */
+.panel-tabs {
+  display: flex;
+  gap: 0;
+  margin: 0;
+  padding: 0 max(1rem, env(safe-area-inset-right)) 0 max(1rem, env(safe-area-inset-left));
+  padding-top: max(.5rem, env(safe-area-inset-top));
+  background: var(--bg, #0a0d12);
+  border-bottom: 1px solid var(--card-border, rgba(255, 255, 255, 0.08));
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  flex-shrink: 0;
+}
+.panel-tabs .tab {
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .5rem .65rem;
+  text-align: center;
+  text-decoration: none;
+  color: var(--muted, #7d8fa8);
+  font-size: .85rem;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.panel-tabs .tab:hover {
+  color: var(--text, #e8edf4);
+}
+.panel-tabs .tab.active {
+  color: var(--accent, #4da3ff);
+  border-bottom-color: var(--accent, #4da3ff);
+}

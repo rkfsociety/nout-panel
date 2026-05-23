@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0a0d12">
   <title>Чат с агентом — Nout Panel</title>
+  <link rel="stylesheet" href="/nav.css">
   <style>
     :root {
       color-scheme: dark;
@@ -27,16 +28,15 @@
       font-family: system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      padding: 0;
     }
-    header {
-      padding: .75rem 1rem;
+    .chat-header {
+      padding: .6rem 1rem;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
-    header h1 { margin: 0; font-size: 1.1rem; }
-    header p { margin: .25rem 0 0; font-size: .8rem; color: var(--muted); }
-    header a { color: var(--accent); font-size: .85rem; }
+    .chat-header h1 { margin: 0; font-size: 1.05rem; }
+    .chat-header p { margin: .2rem 0 0; font-size: .78rem; color: var(--muted); }
     #status-banner {
       padding: .6rem 1rem;
       background: rgba(240,180,41,.12);
@@ -98,11 +98,15 @@
   </style>
 </head>
 <body>
-  <header>
+  <nav class="panel-tabs" aria-label="Разделы">
+    <a href="/" class="tab">Мониторинг</a>
+    <a href="/chat" class="tab">Чат</a>
+    <a href="/remote" class="tab">Управление</a>
+  </nav>
+  <div class="chat-header">
     <h1>Чат с Cursor Agent</h1>
     <p id="workspace-hint">Рабочая папка: —</p>
-    <a href="/">← Мониторинг</a> · <a href="/remote">Управление</a>
-  </header>
+  </div>
   <div id="status-banner"></div>
   <div id="messages"></div>
   <footer>
@@ -110,6 +114,7 @@
     <button type="button" id="send">→</button>
   </footer>
 
+  <script src="/nav.js"></script>
   <script>
   // Чат через cursor agent на ноуте (не пароль панели)
   const messagesEl = document.getElementById('messages');

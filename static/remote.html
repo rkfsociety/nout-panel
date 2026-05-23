@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0a0d12">
   <title>Управление — Nout Panel</title>
+  <link rel="stylesheet" href="/nav.css">
   <link rel="stylesheet" href="/xterm.min.css">
   <style>
     :root {
@@ -26,11 +27,10 @@
       font-family: system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 1rem;
-      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+      padding: 0 max(1rem, env(safe-area-inset-right))
         max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
     }
-    .wrap { max-width: 56rem; margin: 0 auto; }
+    .wrap { max-width: 56rem; margin: 0 auto; padding-top: 1rem; }
     h1 { margin: 0; font-size: 1.35rem; }
     .nav { margin: .75rem 0 1rem; font-size: .9rem; }
     .nav a { color: var(--accent); margin-right: 1rem; }
@@ -93,12 +93,14 @@
   </style>
 </head>
 <body>
+  <nav class="panel-tabs" aria-label="Разделы">
+    <a href="/" class="tab">Мониторинг</a>
+    <a href="/chat" class="tab">Чат</a>
+    <a href="/remote" class="tab">Управление</a>
+  </nav>
   <div class="wrap">
     <h1>Управление системой</h1>
-    <p class="nav">
-      <a href="/">← Мониторинг</a> · <a href="/chat">Чат с агентом</a>
-      <span style="color:var(--muted)">Локальная сеть · без пароля</span>
-    </p>
+    <p class="sub-hint" style="color:var(--muted);font-size:.85rem;margin:0 0 1rem">Локальная сеть · без пароля</p>
 
     <div class="card">
       <h2>Терминал</h2>
@@ -137,6 +139,7 @@
     </div>
   </div>
 
+  <script src="/nav.js"></script>
   <script src="/xterm.min.js"></script>
   <script>
     // --- API без токена (доверенная LAN) ---

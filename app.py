@@ -222,6 +222,8 @@ class PanelHandler(BaseHTTPRequestHandler):
             "/chart.umd.min.js": ("chart.umd.min.js", "application/javascript; charset=utf-8"),
             "/xterm.min.js": ("xterm.min.js", "application/javascript; charset=utf-8"),
             "/xterm.min.css": ("xterm.min.css", "text/css; charset=utf-8"),
+            "/nav.css": ("nav.css", "text/css; charset=utf-8"),
+            "/nav.js": ("nav.js", "application/javascript; charset=utf-8"),
         }
         if path in static_map:
             name, ctype = static_map[path]

@@ -6,6 +6,7 @@
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0a0d12">
   <title>Nout Panel</title>
+  <link rel="stylesheet" href="/nav.css">
   <style>
     /* Тёмная тема — комфортно ночью, без ослепляющего белого */
     :root {
@@ -28,11 +29,11 @@
       font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+      padding: 0 max(1rem, env(safe-area-inset-right))
         max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
       -webkit-font-smoothing: antialiased;
     }
-    .wrap { max-width: 52rem; margin: 0 auto; }
+    .wrap { max-width: 52rem; margin: 0 auto; padding-top: 1rem; }
     h1 { margin: 0; font-size: clamp(1.25rem, 4vw, 1.5rem); word-break: break-word; }
     .sub { color: var(--muted); font-size: .875rem; margin: .25rem 0 1rem; line-height: 1.4; }
     .badge {
@@ -171,6 +172,11 @@
   </style>
 </head>
 <body>
+  <nav class="panel-tabs" aria-label="Разделы">
+    <a href="/" class="tab">Мониторинг</a>
+    <a href="/chat" class="tab">Чат</a>
+    <a href="/remote" class="tab">Управление</a>
+  </nav>
   <div class="wrap">
     <h1 id="host-title">Nout Panel</h1>
     <p class="sub">Тёмная панель · обновление каждую секунду · графики ~10 мин</p>
@@ -239,16 +245,13 @@
 
     <p class="footer">
       <span id="updated">—</span><br>
-      <a href="/chat">Чат с агентом</a>
-      ·
-      <a href="/remote">Управление</a>
-      ·
       <a href="/api/metrics" target="_blank" rel="noopener">JSON метрик</a>
       ·
       <button type="button" class="btn-copy" id="copy-json" style="min-height:36px;min-width:auto;display:inline-flex;vertical-align:middle">Копировать JSON</button>
     </p>
   </div>
 
+  <script src="/nav.js"></script>
   <script src="/chart.umd.min.js"></script>
   <script>
     // Экранирование для безопасной вставки в HTML
