@@ -5,6 +5,7 @@
     '<div class="metrics-bar">' +
     '<div class="metrics-row">' +
     '<div class="metrics-brand">' +
+    '<button type="button" class="btn-header-restart" id="btn-panel-restart" title="Перезапустить панель">↻</button>' +
     '<h1 id="host-title">Nout Panel</h1>' +
     '<span class="badge" id="status" aria-live="polite">—</span>' +
     '<span class="metrics-time" id="updated">—</span>' +
@@ -39,6 +40,8 @@
     '<a href="/settings">Настройки</a>' +
     '</footer>';
 
+  var TOAST_HTML = '<div id="panel-toast" class="panel-toast" role="status" hidden></div>';
+
   var body = document.body;
   if (!body) return;
 
@@ -59,6 +62,13 @@
       firstScript.insertAdjacentHTML('beforebegin', FOOTER_HTML);
     } else {
       body.insertAdjacentHTML('beforeend', FOOTER_HTML);
+    }
+  }
+
+  if (!document.getElementById('panel-toast')) {
+    var anchor = document.getElementById('panel-site-footer') || body.querySelector('script');
+    if (anchor) {
+      anchor.insertAdjacentHTML('beforebegin', TOAST_HTML);
     }
   }
 

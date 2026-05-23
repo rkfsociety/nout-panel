@@ -78,27 +78,16 @@
   }
 
   function waitForOnline() {
-    showToast('Панель перезапускается…');
-    let n = 0;
-    const tick = () => {
-      fetch('/api/status', { cache: 'no-store' })
-        .then(r => r.json())
-        .then(d => {
-          if (d.ok) {
-            showToast('Панель снова online');
-            loadInfo();
-            loadConfig();
-            loadLogs();
-            location.reload();
-          } else throw new Error();
-        })
-        .catch(() => {
-          n++;
-          if (n < 45) setTimeout(tick, 1000);
-          else showToast('Панель не ответила', true);
-        });
-    };
-    setTimeout(tick, 1500);
+    if (window.noutPanelWaitOnline) {
+      window.noutPanelWaitOnline(function () {
+        loadInfo();
+        loadConfig();
+        loadLogs();
+      });
+      return;
+    }
+    showToast('Панель перезапускается…', false);
+    location.reload();
   }
 
   async function saveConfig(apply) {
@@ -139,26 +128,6 @@
     saveConfig(true);
   });
   document.getElementById('btn-save-only').addEventListener('click', () => saveConfig(false));
-  document.getElementById('btn-restart').addEventListener('click', async () => {
-    if (!confirm('Перезапустить панель?')) return;
-    const btn = document.getElementById('btn-restart');
-    btn.disabled = true;
-    try {
-      const r = await fetch('/api/panel/restart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirm: 'RESTART_PANEL' }),
-      });
-      const d = await r.json();
-      if (!d.ok) {
-        showToast(d.error || 'Ошибка', true);
-        btn.disabled = false;
-        return;
-      }
-    } catch (_) {}
-    waitForOnline();
-    btn.disabled = false;
-  });
   document.getElementById('btn-refresh-logs').addEventListener('click', loadLogs);
   setInterval(() => {
     if (document.getElementById('log-auto').checked) loadLogs();

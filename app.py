@@ -262,6 +262,7 @@ class PanelHandler(BaseHTTPRequestHandler):
             "/panel-shell.css": ("panel-shell.css", "text/css; charset=utf-8"),
             "/panel-shell.js": ("panel-shell.js", "application/javascript; charset=utf-8"),
             "/panel-metrics.js": ("panel-metrics.js", "application/javascript; charset=utf-8"),
+            "/panel-restart.js": ("panel-restart.js", "application/javascript; charset=utf-8"),
             "/page-nav.css": ("page-nav.css", "text/css; charset=utf-8"),
             "/page-nav.js": ("page-nav.js", "application/javascript; charset=utf-8"),
             "/nav.css": ("nav.css", "text/css; charset=utf-8"),

@@ -55,6 +55,29 @@ body.page-shell {
   min-width: 0;
 }
 
+/* Кнопка перезапуска панели — слева в шапке */
+.btn-header-restart {
+  flex-shrink: 0;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(245, 101, 101, 0.35);
+  background: rgba(245, 101, 101, 0.1);
+  color: var(--shell-danger);
+  font-size: calc(0.95rem + var(--header-font-plus));
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.btn-header-restart:hover {
+  background: rgba(245, 101, 101, 0.18);
+}
+.btn-header-restart:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
 .metrics-brand h1 {
   margin: 0;
   font-size: calc(0.88rem + var(--header-font-plus));
@@ -257,4 +280,26 @@ body.page-shell {
 .site-footer-sep {
   margin: 0 0.3rem;
   opacity: 0.5;
+}
+
+.panel-toast {
+  position: fixed;
+  bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2.5rem));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: #1a2332;
+  border: 1px solid var(--shell-border);
+  font-size: 0.8rem;
+  color: var(--shell-ok);
+  z-index: 30;
+  max-width: 90vw;
+  text-align: center;
+}
+.panel-toast.err {
+  color: var(--shell-danger);
+}
+.panel-toast[hidden] {
+  display: none !important;
 }
