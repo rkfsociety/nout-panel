@@ -41,7 +41,7 @@ def restart_panel(confirm: str) -> dict[str, Any]:
     if check.returncode != 0:
         return {
             "ok": False,
-            "error": "Нет прав на systemctl. Выполните на ноуте: sudo ./install.sh",
+            "error": "Нет прав на systemctl. Один раз на ноуте: sudo ./install.sh (вкладка Настройки)",
         }
 
     unit = _UNIT.replace("'", "")

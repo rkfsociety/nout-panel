@@ -51,26 +51,11 @@ http://<IP-ноута>:8765/
 
 IP покажет вывод `install.sh` или `hostname -I` на ноуте.
 
-## Управление
+## Управление через веб
 
-После правки `config.local.env` скопируйте его в systemd — панель перезапустится сама:
+Вкладка **Настройки** (`/settings`): правка `config.local.env`, применение в systemd, просмотр логов, перезапуск панели, статус сервиса и Cursor Agent.
 
-```bash
-sudo cp config.local.env /etc/nout-panel/env
-```
-
-Или снова `sudo ./install.sh` (копирует конфиг и перезапускает).
-
-На главной странице есть кнопка **«Перезапустить панель»** (после `sudo ./install.sh` настраивается sudo без пароля).
-
-```bash
-sudo systemctl status nout-panel
-sudo systemctl restart nout-panel
-# Логи (файл, не journal; путь — PANEL_LOG_FILE в config.local.env):
-tail -f ~/.nout-panel/log.txt
-```
-
-После обновления кода переустановите юнит: `sudo ./install.sh` (создаёт каталог логов, `Restart=on-failure`).
+Консоль нужна в основном для первой установки (`sudo ./install.sh`) и однократного `cursor agent login`.
 
 ## Надёжность
 

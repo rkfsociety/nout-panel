@@ -87,6 +87,7 @@ SUDOERS_FILE="/etc/sudoers.d/nout-panel-${PANEL_USER}"
 cat >"${SUDOERS_FILE}" <<EOF
 # nout-panel: перезапуск сервиса из веб-UI (${PANEL_USER})
 ${PANEL_USER} ALL=(root) NOPASSWD: /usr/bin/systemctl restart nout-panel.service, /usr/bin/systemctl restart nout-panel
+${PANEL_USER} ALL=(root) NOPASSWD: /usr/bin/cp ${INSTALL_DIR}/config.local.env /etc/nout-panel/env
 EOF
 chmod 0440 "${SUDOERS_FILE}"
 if ! visudo -cf "${SUDOERS_FILE}" >/dev/null 2>&1; then

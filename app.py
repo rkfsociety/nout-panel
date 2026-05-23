@@ -19,6 +19,7 @@ from urllib.parse import parse_qs, urlparse
 import agent_chat
 import file_manager
 import panel_control
+import panel_settings
 import power_control
 import screen_capture
 import terminal_pty
@@ -213,6 +214,17 @@ class PanelHandler(BaseHTTPRequestHandler):
         if path == "/api/chat/sessions":
             self._send_json(agent_chat.list_sessions())
             return
+        if path == "/api/panel/config":
+            self._send_json(panel_settings.get_config())
+            return
+        if path == "/api/panel/info":
+            self._send_json(panel_settings.panel_info(PANEL_VERSION))
+            return
+        if path == "/api/panel/logs":
+            lines = int(self._q1("lines") or "200")
+            self._send_json(panel_settings.tail_logs(lines))
+            return
+
         if path == "/api/chat/poll":
             jid = self._q1("job")
             offset = int(self._q1("offset") or "0")
@@ -242,6 +254,8 @@ class PanelHandler(BaseHTTPRequestHandler):
             "/remote.html": ("remote.html", "text/html; charset=utf-8"),
             "/chat": ("chat.html", "text/html; charset=utf-8"),
             "/chat.html": ("chat.html", "text/html; charset=utf-8"),
+            "/settings": ("settings.html", "text/html; charset=utf-8"),
+            "/settings.html": ("settings.html", "text/html; charset=utf-8"),
             "/chart.umd.min.js": ("chart.umd.min.js", "application/javascript; charset=utf-8"),
             "/xterm.min.js": ("xterm.min.js", "application/javascript; charset=utf-8"),
             "/xterm.min.css": ("xterm.min.css", "text/css; charset=utf-8"),
@@ -348,6 +362,17 @@ class PanelHandler(BaseHTTPRequestHandler):
             if path == "/api/panel/restart":
                 body = self._read_json()
                 self._send_json(panel_control.restart_panel(body.get("confirm", "")))
+                return
+
+            if path == "/api/panel/config":
+                body = self._read_json()
+                updates = body.get("values") or body.get("updates") or {}
+                apply = bool(body.get("apply", True))
+                self._send_json(panel_settings.save_config(updates, apply))
+                return
+
+            if path == "/api/panel/apply":
+                self._send_json(panel_settings.apply_config())
                 return
 
             self.send_error(404, "Not Found")

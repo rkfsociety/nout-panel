@@ -150,28 +150,6 @@
       color: var(--muted);
       line-height: 1.4;
     }
-    .panel-actions {
-      margin-top: .65rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: .5rem;
-      align-items: center;
-    }
-    .btn-restart {
-      min-height: var(--touch);
-      padding: 0 .85rem;
-      border: 1px solid #5a3030;
-      border-radius: 10px;
-      background: #1a1010;
-      color: #f0a8a8;
-      font-size: .8rem;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-    .btn-restart:disabled {
-      opacity: .5;
-      cursor: wait;
-    }
     a { color: var(--accent); }
   </style>
 </head>
@@ -180,6 +158,7 @@
     <a href="/" class="tab">Мониторинг</a>
     <a href="/chat" class="tab">Чат</a>
     <a href="/remote" class="tab">Управление</a>
+    <a href="/settings" class="tab">Настройки</a>
   </nav>
   <div class="wrap">
     <h1 id="host-title">Nout Panel</h1>
@@ -231,9 +210,6 @@
         </div>
         <div id="temps" class="temps"></div>
         <p class="panel-meta" id="panel-process" hidden></p>
-        <div class="panel-actions" id="panel-actions" hidden>
-          <button type="button" class="btn-restart" id="btn-restart-panel">Перезапустить панель</button>
-        </div>
       </div>
 
       <div class="card">
@@ -349,58 +325,15 @@
 
     function renderPanel(p) {
       const el = document.getElementById('panel-process');
-      const actions = document.getElementById('panel-actions');
       if (!p || !p.available) {
         el.hidden = true;
-        actions.hidden = true;
         return;
       }
       el.hidden = false;
-      actions.hidden = false;
       const ram = p.rss_mb != null ? p.rss_mb + ' МБ RAM' : 'RAM —';
       const thr = p.threads != null ? ' · ' + p.threads + ' поток.' : '';
       el.textContent = 'Панель: PID ' + p.pid + ' · ' + ram + thr + ' · uptime ' + formatUptime(p.uptime_sec);
     }
-
-    // Перезапуск systemd-сервиса панели из браузера
-    function waitForPanelOnline(tries, delayMs) {
-      return fetch('/api/status', { cache: 'no-store' })
-        .then(r => r.json())
-        .then(d => { if (d.ok) location.reload(); else throw new Error('not ok'); })
-        .catch(() => {
-          if (tries <= 0) {
-            alert('Панель не ответила. Проверьте: sudo systemctl status nout-panel');
-            document.getElementById('btn-restart-panel').disabled = false;
-            return;
-          }
-          setTimeout(() => waitForPanelOnline(tries - 1, delayMs), delayMs);
-        });
-    }
-
-    document.getElementById('btn-restart-panel').addEventListener('click', async function () {
-      if (!confirm('Перезапустить панель? Страница отключится на несколько секунд.')) return;
-      const btn = this;
-      btn.disabled = true;
-      document.getElementById('status').textContent = 'Перезапуск…';
-      document.getElementById('status').className = 'badge offline';
-      try {
-        const r = await fetch('/api/panel/restart', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ confirm: 'RESTART_PANEL' }),
-        });
-        const d = await r.json();
-        if (!d.ok) {
-          alert(d.error || 'Не удалось перезапустить');
-          btn.disabled = false;
-          tick();
-          return;
-        }
-      } catch (_) {
-        /* соединение оборвалось — нормально при restart */
-      }
-      setTimeout(() => waitForPanelOnline(40, 1000), 1500);
-    });
 
     function renderBattery(bat) {
       const val = document.getElementById('battery-val');
