@@ -7,11 +7,15 @@ import os
 import shutil
 import threading
 import time
+from collections import deque
 from datetime import datetime, timezone
 from typing import Any
 
 # Интервал обновления кэша (сек)
 COLLECT_INTERVAL = 0.5
+
+# Точек истории (~10 мин при интервале 0.5 с)
+HISTORY_MAXLEN = 1200
 
 # Типы ФС, которые не показываем в панели
 _SKIP_FSTYPES = frozenset(
@@ -46,6 +50,7 @@ _SKIP_FSTYPES = frozenset(
 _SKIP_MOUNT_PREFIXES = ("/proc", "/sys", "/dev", "/run", "/snap")
 
 _cache: dict[str, Any] = {"ok": False}
+_history: deque[dict[str, Any]] = deque(maxlen=HISTORY_MAXLEN)
 _lock = threading.Lock()
 _prev_cpu: tuple[int, int] | None = None
 _thread_started = False
@@ -199,6 +204,23 @@ def _disks() -> list[dict[str, Any]]:
     return disks
 
 
+def _append_history(data: dict[str, Any]) -> None:
+    """Добавить точку в кольцевой буфер для графиков."""
+    if not data.get("cpu_ready"):
+        return
+    temps = data.get("temperatures") or []
+    temp_max = max((t["celsius"] for t in temps), default=None)
+    point: dict[str, Any] = {
+        "ts": data["time_utc"],
+        "cpu": data["cpu_percent"],
+        "ram": data["memory"]["ram_percent"],
+        "load": data["load"]["load_percent"],
+    }
+    if temp_max is not None:
+        point["temp_max"] = temp_max
+    _history.append(point)
+
+
 def _collect_once() -> dict[str, Any]:
     """Один проход сбора всех метрик."""
     cpu = _cpu_percent()
@@ -226,6 +248,7 @@ def _collector_loop() -> None:
             with _lock:
                 _cache.clear()
                 _cache.update(data)
+                _append_history(data)
         except Exception as exc:  # noqa: BLE001 — не роняем поток
             with _lock:
                 _cache.update({"ok": False, "error": str(exc)})
@@ -243,6 +266,9 @@ def start_collector() -> None:
 
 
 def get_metrics() -> dict[str, Any]:
-    """Текущий снимок метрик для API."""
+    """Текущий снимок метрик и история для графиков."""
     with _lock:
-        return dict(_cache)
+        out = dict(_cache)
+        out["history"] = list(_history)
+        out["history_interval_sec"] = COLLECT_INTERVAL
+        return out

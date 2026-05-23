@@ -50,14 +50,14 @@ def _status_payload() -> dict:
         "ips": _local_ips(),
         "time_utc": datetime.now(timezone.utc).isoformat(),
         "platform": platform.platform(),
-        "panel_version": "0.2.0",
+        "panel_version": "0.3.0",
     }
 
 
 class PanelHandler(BaseHTTPRequestHandler):
     """HTTP: главная, /api/status, /api/metrics."""
 
-    server_version = "NoutPanel/0.2"
+    server_version = "NoutPanel/0.3"
 
     def log_message(self, fmt: str, *args) -> None:
         import sys
@@ -97,6 +97,10 @@ class PanelHandler(BaseHTTPRequestHandler):
 
         if path in ("/", "/index.html"):
             self._send_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
+            return
+
+        if path == "/chart.umd.min.js":
+            self._send_file(STATIC_DIR / "chart.umd.min.js", "application/javascript; charset=utf-8")
             return
 
         self.send_error(404, "Not Found")

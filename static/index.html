@@ -2,67 +2,127 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0a0d12">
   <title>Nout Panel</title>
   <style>
+    /* Тёмная тема — комфортно ночью, без ослепляющего белого */
     :root {
-      --bg: #0f1419;
-      --card: #1a2332;
-      --accent: #3d9eff;
-      --text: #e7ecf3;
-      --muted: #8b9cb3;
+      color-scheme: dark;
+      --bg: #0a0d12;
+      --card: #141b26;
+      --card-border: rgba(255, 255, 255, 0.06);
+      --accent: #4da3ff;
+      --text: #e8edf4;
+      --muted: #7d8fa8;
       --ok: #3dd68c;
       --warn: #f0b429;
       --danger: #f56565;
+      --touch: 44px;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding: 1.5rem;
+      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+        max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+      -webkit-font-smoothing: antialiased;
     }
-    .wrap { max-width: 42rem; margin: 0 auto; }
-    h1 { margin: 0; font-size: 1.5rem; }
-    .sub { color: var(--muted); font-size: .9rem; margin: .25rem 0 1rem; }
+    .wrap { max-width: 52rem; margin: 0 auto; }
+    h1 { margin: 0; font-size: clamp(1.25rem, 4vw, 1.5rem); word-break: break-word; }
+    .sub { color: var(--muted); font-size: .875rem; margin: .25rem 0 1rem; line-height: 1.4; }
     .badge {
       display: inline-block;
-      background: rgba(61, 214, 140, .15);
+      background: rgba(61, 214, 140, .12);
       color: var(--ok);
-      padding: .35rem .75rem;
+      padding: .4rem .85rem;
       border-radius: 999px;
       font-size: .85rem;
       margin-bottom: 1rem;
     }
-    .badge.offline { background: rgba(245,101,101,.15); color: var(--danger); }
+    .badge.offline { background: rgba(245, 101, 101, .12); color: var(--danger); }
     .grid { display: grid; gap: 1rem; }
     .card {
       background: var(--card);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      box-shadow: 0 4px 24px rgba(0,0,0,.4);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1rem 1.15rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
+    }
+    @media (min-width: 640px) {
+      .card { padding: 1.25rem 1.5rem; }
     }
     .card h2 {
-      margin: 0 0 1rem;
-      font-size: .95rem;
+      margin: 0 0 .85rem;
+      font-size: .8rem;
       font-weight: 600;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: .04em;
+      letter-spacing: .06em;
+    }
+    .row-list { display: flex; flex-direction: column; gap: .5rem; }
+    .row-item {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      flex-wrap: wrap;
+      font-size: .9rem;
+    }
+    .row-item code {
+      flex: 1;
+      min-width: 0;
+      font-size: .85rem;
+      background: #080b10;
+      padding: .45rem .6rem;
+      border-radius: 8px;
+      word-break: break-all;
+      color: var(--text);
+    }
+    .btn-copy {
+      flex-shrink: 0;
+      min-height: var(--touch);
+      min-width: var(--touch);
+      padding: 0 .75rem;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      background: #0d1118;
+      color: var(--muted);
+      font-size: .8rem;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn-copy:active, .btn-copy.copied {
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+    .chart-box {
+      position: relative;
+      height: min(220px, 42vw);
+      min-height: 160px;
+      margin-bottom: .75rem;
+    }
+    .chart-box:last-child { margin-bottom: 0; }
+    .chart-legend {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: .35rem;
     }
     .metric { margin-bottom: 1rem; }
     .metric:last-child { margin-bottom: 0; }
     .metric-head {
       display: flex;
       justify-content: space-between;
+      gap: .5rem;
       font-size: .9rem;
       margin-bottom: .35rem;
     }
     .bar {
       height: 8px;
-      background: #0a0e14;
+      background: #080b10;
       border-radius: 4px;
       overflow: hidden;
     }
@@ -75,26 +135,36 @@
     .bar-fill.warn { background: var(--warn); }
     .bar-fill.danger { background: var(--danger); }
     .disk {
-      border-top: 1px solid rgba(255,255,255,.06);
+      border-top: 1px solid var(--card-border);
       padding-top: .85rem;
       margin-top: .85rem;
     }
     .disk:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
     .disk-title { font-weight: 600; font-size: .95rem; }
-    .disk-meta { font-size: .8rem; color: var(--muted); margin: .2rem 0 .5rem; }
+    .disk-meta { font-size: .8rem; color: var(--muted); margin: .2rem 0 .5rem; word-break: break-word; }
     .temps { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
     .temp-chip {
       font-size: .8rem;
-      background: #0a0e14;
-      padding: .25rem .5rem;
-      border-radius: 6px;
+      background: #080b10;
+      padding: .35rem .55rem;
+      border-radius: 8px;
       color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-top: .75rem;
     }
     .footer {
-      margin-top: 1rem;
+      margin-top: 1.25rem;
       font-size: .75rem;
       color: var(--muted);
       text-align: center;
+      line-height: 1.6;
     }
     a { color: var(--accent); }
   </style>
@@ -102,12 +172,33 @@
 <body>
   <div class="wrap">
     <h1 id="host-title">Nout Panel</h1>
-    <p class="sub">Мониторинг · обновление каждую секунду</p>
+    <p class="sub">Тёмная панель · обновление каждую секунду · графики ~10 мин</p>
     <div class="badge" id="status">Подключение…</div>
 
     <div class="grid">
+      <div class="card" id="network-card" hidden>
+        <h2>Сеть</h2>
+        <div class="row-list" id="ip-list"></div>
+        <div class="actions">
+          <button type="button" class="btn-copy" id="copy-url" data-copy="">Копировать ссылку</button>
+          <button type="button" class="btn-copy" id="copy-host">Копировать имя хоста</button>
+        </div>
+      </div>
+
       <div class="card">
-        <h2>Загрузка</h2>
+        <h2>История</h2>
+        <div class="chart-box">
+          <canvas id="chart-load" aria-label="График CPU, ОЗУ и load"></canvas>
+        </div>
+        <p class="chart-legend">CPU · ОЗУ · Load (% от числа ядер)</p>
+        <div class="chart-box">
+          <canvas id="chart-temp" aria-label="График температуры"></canvas>
+        </div>
+        <p class="chart-legend" id="temp-legend">Температура (макс. по датчикам)</p>
+      </div>
+
+      <div class="card">
+        <h2>Сейчас</h2>
         <div class="metric">
           <div class="metric-head">
             <span>CPU</span>
@@ -139,12 +230,22 @@
     </div>
 
     <p class="footer">
-      <span id="updated">—</span> ·
-      <a href="/api/metrics" target="_blank">JSON</a>
+      <span id="updated">—</span><br>
+      <a href="/api/metrics" target="_blank" rel="noopener">JSON метрик</a>
+      ·
+      <button type="button" class="btn-copy" id="copy-json" style="min-height:36px;min-width:auto;display:inline-flex;vertical-align:middle">Копировать JSON</button>
     </p>
   </div>
 
+  <script src="/chart.umd.min.js"></script>
   <script>
+    // Экранирование для безопасной вставки в HTML
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s == null ? '' : String(s);
+      return d.innerHTML;
+    }
+
     function barClass(pct) {
       if (pct >= 90) return 'danger';
       if (pct >= 75) return 'warn';
@@ -158,6 +259,60 @@
       el.className = 'bar-fill ' + barClass(v);
     }
 
+    // Копирование в буфер (телефон / десктоп)
+    async function copyText(text, btn) {
+      const label = btn.dataset.label || btn.textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      btn.classList.add('copied');
+      btn.textContent = 'Скопировано';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.textContent = label;
+      }, 1600);
+    }
+
+    function bindCopyButtons() {
+      document.querySelectorAll('.btn-copy[data-copy]').forEach(btn => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+        btn.dataset.label = btn.textContent;
+        btn.addEventListener('click', () => copyText(btn.dataset.copy, btn));
+      });
+    }
+
+    function renderIps(ips) {
+      const card = document.getElementById('network-card');
+      const list = document.getElementById('ip-list');
+      const port = location.port || '8765';
+      if (!ips || !ips.length) {
+        card.hidden = true;
+        return;
+      }
+      card.hidden = false;
+      const primary = ips[0];
+      const url = 'http://' + primary + ':' + port + '/';
+      document.getElementById('copy-url').dataset.copy = url;
+
+      list.innerHTML = ips.map(ip => `
+        <div class="row-item">
+          <code>${esc(ip)}</code>
+          <button type="button" class="btn-copy" data-copy="${esc(ip)}" aria-label="Копировать IP">Копировать</button>
+        </div>
+      `).join('');
+      bindCopyButtons();
+    }
+
     function renderDisks(disks) {
       const root = document.getElementById('disks');
       if (!disks || !disks.length) {
@@ -166,8 +321,8 @@
       }
       root.innerHTML = disks.map(d => `
         <div class="disk">
-          <div class="disk-title">${d.mount}</div>
-          <div class="disk-meta">${d.device} · ${d.fstype} · свободно ${d.free_gb} ГБ из ${d.total_gb} ГБ</div>
+          <div class="disk-title">${esc(d.mount)}</div>
+          <div class="disk-meta">${esc(d.device)} · ${esc(d.fstype)} · свободно ${d.free_gb} ГБ из ${d.total_gb} ГБ</div>
           <div class="metric-head"><span>Занято</span><span>${d.percent}%</span></div>
           <div class="bar"><div class="bar-fill ${barClass(d.percent)}" style="width:${d.percent}%"></div></div>
         </div>
@@ -180,12 +335,120 @@
         root.innerHTML = '';
         return;
       }
-      root.innerHTML = temps.map(t =>
-        `<span class="temp-chip">${t.name}: ${t.celsius}°C</span>`
-      ).join('');
+      root.innerHTML = temps.map(t => {
+        const label = t.name + ': ' + t.celsius + '°C';
+        return `<span class="temp-chip"><span>${esc(t.name)}: ${t.celsius}°C</span>
+          <button type="button" class="btn-copy" data-copy="${esc(label)}" style="min-height:32px;min-width:auto;padding:0 .5rem" aria-label="Копировать">⎘</button></span>`;
+      }).join('');
+      bindCopyButtons();
+    }
+
+    // Chart.js — тёмные графики истории
+    const chartColors = {
+      cpu: '#4da3ff',
+      ram: '#3dd68c',
+      load: '#f0b429',
+      temp: '#f56565',
+      grid: 'rgba(255,255,255,0.06)',
+      text: '#7d8fa8',
+    };
+
+    const chartDefaults = {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: chartColors.text, boxWidth: 12, font: { size: 11 } },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: chartColors.text, maxTicksLimit: 6, maxRotation: 0 },
+          grid: { color: chartColors.grid },
+        },
+        y: {
+          min: 0,
+          max: 100,
+          ticks: { color: chartColors.text },
+          grid: { color: chartColors.grid },
+        },
+      },
+    };
+
+    let chartLoad = null;
+    let chartTemp = null;
+
+    function formatTime(iso) {
+      try {
+        return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      } catch (_) {
+        return '';
+      }
+    }
+
+    function initCharts() {
+      if (typeof Chart === 'undefined') return;
+      const ctxLoad = document.getElementById('chart-load');
+      const ctxTemp = document.getElementById('chart-temp');
+
+      chartLoad = new Chart(ctxLoad, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            { label: 'CPU %', data: [], borderColor: chartColors.cpu, tension: 0.2, pointRadius: 0, borderWidth: 2 },
+            { label: 'ОЗУ %', data: [], borderColor: chartColors.ram, tension: 0.2, pointRadius: 0, borderWidth: 2 },
+            { label: 'Load %', data: [], borderColor: chartColors.load, tension: 0.2, pointRadius: 0, borderWidth: 2 },
+          ],
+        },
+        options: chartDefaults,
+      });
+
+      chartTemp = new Chart(ctxTemp, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            { label: '°C', data: [], borderColor: chartColors.temp, tension: 0.2, pointRadius: 0, borderWidth: 2, fill: false },
+          ],
+        },
+        options: {
+          ...chartDefaults,
+          scales: {
+            x: chartDefaults.scales.x,
+            y: {
+              min: 0,
+              ticks: { color: chartColors.text },
+              grid: { color: chartColors.grid },
+            },
+          },
+        },
+      });
+    }
+
+    function updateCharts(history) {
+      if (!chartLoad || !history || !history.length) return;
+      const labels = history.map(p => formatTime(p.ts));
+      chartLoad.data.labels = labels;
+      chartLoad.data.datasets[0].data = history.map(p => p.cpu);
+      chartLoad.data.datasets[1].data = history.map(p => p.ram);
+      chartLoad.data.datasets[2].data = history.map(p => p.load);
+      chartLoad.update('none');
+
+      const hasTemp = history.some(p => p.temp_max != null);
+      document.getElementById('chart-temp').parentElement.hidden = !hasTemp;
+      document.getElementById('temp-legend').hidden = !hasTemp;
+      if (hasTemp && chartTemp) {
+        chartTemp.data.labels = labels;
+        chartTemp.data.datasets[0].data = history.map(p => p.temp_max ?? null);
+        chartTemp.update('none');
+      }
     }
 
     let hostname = 'Nout Panel';
+    let lastMetricsJson = '';
 
     async function loadHost() {
       try {
@@ -195,15 +458,34 @@
           hostname = d.hostname;
           document.getElementById('host-title').textContent = hostname;
           document.title = hostname + ' — Nout Panel';
+          document.getElementById('copy-host').dataset.copy = hostname;
+          bindCopyButtons();
         }
-      } catch (_) { /* имя подставится при следующем тике */ }
+        renderIps(d.ips || []);
+      } catch (_) { /* повторим на следующем тике */ }
     }
+
+    document.getElementById('copy-host').dataset.label = 'Копировать имя хоста';
+    document.getElementById('copy-url').dataset.label = 'Копировать ссылку';
+    document.getElementById('copy-json').dataset.label = 'Копировать JSON';
+
+    document.getElementById('copy-host').addEventListener('click', function () {
+      copyText(this.dataset.copy || hostname, this);
+    });
+    document.getElementById('copy-url').addEventListener('click', function () {
+      copyText(this.dataset.copy || location.href, this);
+    });
+    document.getElementById('copy-json').addEventListener('click', function () {
+      copyText(lastMetricsJson || '{}', this);
+    });
 
     async function tick() {
       try {
         const r = await fetch('/api/metrics', { cache: 'no-store' });
         const d = await r.json();
         if (!d.ok) throw new Error(d.error || 'API error');
+
+        lastMetricsJson = JSON.stringify(d, null, 2);
 
         document.getElementById('status').textContent = 'Онлайн · ' + hostname;
         document.getElementById('status').className = 'badge';
@@ -224,6 +506,7 @@
 
         renderDisks(d.disks);
         renderTemps(d.temperatures);
+        updateCharts(d.history);
 
         const t = new Date(d.time_utc);
         document.getElementById('updated').textContent =
@@ -234,9 +517,11 @@
       }
     }
 
+    initCharts();
     loadHost();
     tick();
     setInterval(tick, 1000);
+    setInterval(loadHost, 30000);
   </script>
 </body>
 </html>
