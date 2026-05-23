@@ -80,7 +80,6 @@ _PROC_LOADAVG = Path("/proc/loadavg")
 _PROC_MOUNTS = Path("/proc/mounts")
 _PROC_SELF_STATUS = Path("/proc/self/status")
 _SYS_THERMAL = Path("/sys/class/thermal")
-_SYS_POWER = Path("/sys/class/power_supply")
 
 # Время старта процесса панели (для uptime)
 _PROCESS_START = time.time()
@@ -160,11 +159,6 @@ def _memory_na() -> dict[str, Any]:
 def _temperatures_na() -> dict[str, Any]:
     """Температуры недоступны — N/A в UI."""
     return {"available": False, "sensors": []}
-
-
-def _battery_na() -> dict[str, Any]:
-    """Батарея отсутствует или недоступна — N/A в UI."""
-    return {"available": False, "percent": None, "status": "na", "status_label": "N/A"}
 
 
 def _panel_process_na() -> dict[str, Any]:
@@ -335,42 +329,6 @@ def _temperatures() -> dict[str, Any]:
     return {"available": True, "sensors": sensors}
 
 
-def _battery() -> dict[str, Any]:
-    """Заряд батареи из power_supply (ноутбук); на ПК без BAT — N/A."""
-    if not _proc_exists(_SYS_POWER) or not _SYS_POWER.is_dir():
-        return _battery_na()
-    status_labels = {
-        "charging": "зарядка",
-        "discharging": "разряд",
-        "full": "полная",
-        "not charging": "не заряжается",
-        "unknown": "неизвестно",
-    }
-    for root in sorted(_SYS_POWER.iterdir(), key=lambda p: p.name):
-        if not root.name.upper().startswith("BAT"):
-            continue
-        cap_path = root / "capacity"
-        status_path = root / "status"
-        try:
-            if not cap_path.is_file():
-                continue
-            percent = _parse_int(cap_path.read_text(encoding="utf-8"), None)
-            if percent is None or percent < 0 or percent > 100:
-                continue
-            status_raw = "unknown"
-            if status_path.is_file():
-                status_raw = status_path.read_text(encoding="utf-8").strip().lower()
-            return {
-                "available": True,
-                "percent": percent,
-                "status": status_raw,
-                "status_label": status_labels.get(status_raw, status_raw),
-            }
-        except (OSError, ValueError, TypeError):
-            continue
-    return _battery_na()
-
-
 def _disks() -> list[dict[str, Any]]:
     """Занятость смонтированных разделов."""
     seen: set[str] = set()
@@ -457,7 +415,6 @@ def _collect_once() -> dict[str, Any]:
     memory = _safe("memory", _memory, _memory_na())
     load = _safe("load", _load, {"load_1": None, "load_5": None, "load_15": None, "cpu_cores": None, "load_percent": None})
     temperatures = _safe("temperatures", _temperatures, _temperatures_na())
-    battery = _safe("battery", _battery, _battery_na())
     disks = _safe("disks", _disks, [])
     panel = _safe("panel", _panel_process, _panel_process_na())
     return {
@@ -468,7 +425,6 @@ def _collect_once() -> dict[str, Any]:
         "memory": memory,
         "load": load,
         "temperatures": temperatures,
-        "battery": battery,
         "disks": disks,
         "panel": panel,
     }

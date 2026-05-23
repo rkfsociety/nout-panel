@@ -192,11 +192,6 @@
           <span class="stat-val" id="load-val">—</span>
           <div class="bar mini"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
         </div>
-        <div class="stat" id="battery-stat" hidden>
-          <span class="stat-lbl">Бат</span>
-          <span class="stat-val" id="battery-val">—</span>
-          <div class="bar mini"><div class="bar-fill" id="battery-bar" style="width:0%"></div></div>
-        </div>
       </div>
       <div class="chart-compact">
         <canvas id="chart-load" aria-label="CPU, ОЗУ, load"></canvas>
@@ -286,19 +281,6 @@
       const ram = p.rss_mb != null ? p.rss_mb + ' МБ RAM' : 'RAM —';
       const thr = p.threads != null ? ' · ' + p.threads + ' поток.' : '';
       el.textContent = 'Панель: PID ' + p.pid + ' · ' + ram + thr + ' · uptime ' + formatUptime(p.uptime_sec);
-    }
-
-    function renderBattery(bat) {
-      const row = document.getElementById('battery-stat');
-      const val = document.getElementById('battery-val');
-      if (!bat || !bat.available || bat.percent == null) {
-        if (row) row.hidden = true;
-        setBar('battery-bar', null);
-        return;
-      }
-      if (row) row.hidden = false;
-      val.textContent = bat.percent + '%';
-      setBar('battery-bar', bat.percent);
     }
 
     const chartColors = {
@@ -440,7 +422,6 @@
         setBar('cpu-bar', cpu);
         renderDisks(d.disks);
         renderTemps(d.temperatures);
-        renderBattery(d.battery);
         renderPanel(d.panel);
         updateCharts(d.history);
 
