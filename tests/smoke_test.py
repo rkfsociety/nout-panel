@@ -88,8 +88,8 @@ def main() -> int:
         ("remote", lambda: _check_html("/remote")),
         ("chat", lambda: _check_html("/chat")),
         ("settings", lambda: _check_html("/settings")),
-        ("page-nav.js", lambda: _check_html("/page-nav.js")),
-        ("page-nav.css", lambda: _check_html("/page-nav.css")),
+        ("page-nav.js", lambda: _check_html("/js/page-nav.js")),
+        ("panel-shell.css", lambda: _check_html("/css/panel-shell.css")),
     ]
     failed = 0
     for name, fn in tests:

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from panel_log import setup_logging
+    from nout_panel.panel_log import setup_logging
 except ImportError:
     import logging
 
@@ -22,8 +22,12 @@ except ImportError:
 _log = setup_logging("nout-panel.settings")
 
 _UNIT = os.environ.get("PANEL_SYSTEMD_UNIT", "nout-panel.service")
-_INSTALL_DIR = Path(os.environ.get("INSTALL_DIR", Path(__file__).resolve().parent))
-_CONFIG_LOCAL = _INSTALL_DIR / "config.local.env"
+_ROOT_DIR = Path(os.environ.get("INSTALL_DIR", Path(__file__).resolve().parent.parent))
+_INSTALL_DIR = _ROOT_DIR
+_CONFIG_LOCAL = _ROOT_DIR / "config" / "local.env"
+_LEGACY_CONFIG = _ROOT_DIR / "config.local.env"
+if not _CONFIG_LOCAL.is_file() and _LEGACY_CONFIG.is_file():
+    _CONFIG_LOCAL = _LEGACY_CONFIG
 _CONFIG_SYSTEM = Path("/etc/nout-panel/env")
 
 _READONLY_KEYS = ("PANEL_USER", "INSTALL_DIR")

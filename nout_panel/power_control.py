@@ -7,7 +7,7 @@ import subprocess
 from typing import Any
 
 try:
-    from panel_log import setup_logging
+    from nout_panel.panel_log import setup_logging
 except ImportError:
     import logging
 

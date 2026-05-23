@@ -40,7 +40,7 @@ sudo ./install.sh
 sudo ./install.sh --no-start
 ```
 
-Скрипт создаст **локальный** `config.local.env` (не в Git) и зарегистрирует сервис `nout-panel`. Порт (`PANEL_PORT`), интервал метрик (`PANEL_METRICS_INTERVAL`) и путь к логам (`PANEL_LOG_FILE`) меняются в этом файле без правки кода.
+Скрипт создаст **локальный** `config/local.env` (не в Git) и зарегистрирует сервис `nout-panel`. Порт (`PANEL_PORT`), интервал метрик (`PANEL_METRICS_INTERVAL`) и путь к логам (`PANEL_LOG_FILE`) меняются в этом файле без правки кода.
 
 Откройте в браузере с другого ПК в той же сети:
 
@@ -91,8 +91,27 @@ cursor agent login
 
 | В Git | Только локально |
 |-------|-----------------|
-| Код панели | `config.local.env` |
-| `config.example.env` | `/etc/nout-panel/env` |
+| Код панели | `config/local.env` |
+| `config/example.env` | `/etc/nout-panel/env` |
+
+## Структура проекта
+
+```text
+nout-panel/
+  app.py              # точка входа (systemd)
+  install.sh
+  config/
+    example.env       # образец
+    local.env         # ваш конфиг (не в Git)
+  nout_panel/         # Python: API, метрики, терминал…
+  static/
+    pages/            # HTML
+    css/
+    js/
+    vendor/           # xterm, chart (если нужен)
+  systemd/
+  tests/
+```
 
 Перед `git push` проверьте:
 

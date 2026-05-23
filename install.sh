@@ -7,7 +7,7 @@ NO_START=0
 
 usage() {
 	echo "Использование: sudo ./install.sh [--no-start]" >&2
-	echo "  --no-start  настроить config.local.env и не запускать сервис" >&2
+	echo "  --no-start  настроить config/local.env и не запускать сервис" >&2
 }
 
 for arg in "$@"; do
@@ -31,14 +31,23 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_LOCAL="${SCRIPT_DIR}/config.local.env"
-CONFIG_EXAMPLE="${SCRIPT_DIR}/config.example.env"
+CONFIG_DIR="${SCRIPT_DIR}/config"
+CONFIG_LOCAL="${CONFIG_DIR}/local.env"
+CONFIG_EXAMPLE="${CONFIG_DIR}/example.env"
+LEGACY_CONFIG="${SCRIPT_DIR}/config.local.env"
+
+mkdir -p "${CONFIG_DIR}"
+# Миграция со старого пути в корне
+if [[ -f "${LEGACY_CONFIG}" && ! -f "${CONFIG_LOCAL}" ]]; then
+	mv "${LEGACY_CONFIG}" "${CONFIG_LOCAL}"
+	echo "Перенесён ${LEGACY_CONFIG} → ${CONFIG_LOCAL}"
+fi
 
 # Локальный конфиг не коммитится — создаём при первой установке
 if [[ ! -f "${CONFIG_LOCAL}" ]]; then
 	INSTALL_USER="${SUDO_USER:-$(logname 2>/dev/null || echo "")}"
 	if [[ -z "${INSTALL_USER}" ]]; then
-		echo "Не удалось определить пользователя. Создайте config.local.env вручную из config.example.env" >&2
+		echo "Не удалось определить пользователя. Создайте config/local.env из config/example.env" >&2
 		exit 1
 	fi
 	INSTALL_HOME="$(getent passwd "${INSTALL_USER}" | cut -d: -f6)"
@@ -64,7 +73,7 @@ source "${CONFIG_LOCAL}"
 
 chmod +x "${INSTALL_DIR}/app.py"
 
-# Лог-файл с ротацией (путь и размер — в config.local.env)
+# Лог-файл с ротацией (путь и размер — в config/local.env)
 if [[ -z "${PANEL_LOG_FILE:-}" ]]; then
 	PANEL_HOME="$(getent passwd "${PANEL_USER}" | cut -d: -f6)"
 	LOG_FILE="${PANEL_HOME:-/home/${PANEL_USER}}/.nout-panel/log.txt"
@@ -87,7 +96,7 @@ SUDOERS_FILE="/etc/sudoers.d/nout-panel-${PANEL_USER}"
 cat >"${SUDOERS_FILE}" <<EOF
 # nout-panel: перезапуск сервиса из веб-UI (${PANEL_USER})
 ${PANEL_USER} ALL=(root) NOPASSWD: /usr/bin/systemctl restart nout-panel.service, /usr/bin/systemctl restart nout-panel
-${PANEL_USER} ALL=(root) NOPASSWD: /usr/bin/cp ${INSTALL_DIR}/config.local.env /etc/nout-panel/env
+${PANEL_USER} ALL=(root) NOPASSWD: /usr/bin/cp ${INSTALL_DIR}/config/local.env /etc/nout-panel/env
 EOF
 chmod 0440 "${SUDOERS_FILE}"
 if ! visudo -cf "${SUDOERS_FILE}" >/dev/null 2>&1; then
@@ -114,7 +123,7 @@ systemctl start nout-panel-config.path 2>/dev/null || true
 
 PORT="${PANEL_PORT:-8765}"
 
-# Подсказка: как применить правки config.local.env
+# Подсказка: как применить правки config/local.env
 config_hint() {
 	echo ""
 	echo "Конфиг: ${CONFIG_LOCAL}  →  /etc/nout-panel/env"
