@@ -8,12 +8,11 @@
   <title>Nout Panel</title>
   <link rel="stylesheet" href="/page-nav.css">
   <style>
-    /* Тёмная тема — компактный мониторинг */
+    /* Мониторинг — всё в верхнем header, без графиков */
     :root {
       color-scheme: dark;
       --bg: #0a0d12;
-      --card: #141b26;
-      --card-border: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.06);
       --accent: #4da3ff;
       --text: #e8edf4;
       --muted: #7d8fa8;
@@ -30,74 +29,73 @@
       color: var(--text);
       -webkit-font-smoothing: antialiased;
     }
-    .wrap {
-      max-width: 40rem;
-      margin: 0 auto;
-      padding: .75rem 1rem 2rem;
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
     }
-    h1 { margin: 0; font-size: clamp(1.25rem, 4vw, 1.5rem); word-break: break-word; }
-    .sub { color: var(--muted); font-size: .875rem; margin: .25rem 0 1rem; line-height: 1.4; }
+    .site-header .page-nav {
+      border-bottom: 1px solid var(--border);
+    }
+    .metrics-bar {
+      max-width: 56rem;
+      margin: 0 auto;
+      padding: .55rem 1rem .7rem;
+    }
+    .metrics-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .35rem .65rem;
+    }
+    .metrics-title-row h1 {
+      margin: 0;
+      font-size: clamp(1rem, 3.5vw, 1.2rem);
+      font-weight: 600;
+      word-break: break-word;
+    }
     .badge {
       display: inline-block;
       background: rgba(61, 214, 140, .12);
       color: var(--ok);
-      padding: .2rem .55rem;
+      padding: .15rem .5rem;
       border-radius: 999px;
-      font-size: .68rem;
+      font-size: .65rem;
       font-weight: 500;
     }
-    .badge.offline { background: rgba(245, 101, 101, .12); color: var(--danger); }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: .6rem .75rem;
+    .badge.offline {
+      background: rgba(245, 101, 101, .12);
+      color: var(--danger);
     }
-    .card h2 {
-      margin: 0 0 .5rem;
+    .metrics-time {
+      margin-left: auto;
       font-size: .68rem;
-      font-weight: 600;
       color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .06em;
+      font-variant-numeric: tabular-nums;
     }
-    .metrics-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: .5rem;
-      margin-bottom: .5rem;
-      flex-wrap: wrap;
-    }
-    .metrics-time { font-size: .65rem; color: var(--muted); }
-    .stat-grid {
+    .stat-row {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: .35rem .5rem;
-    }
-    @media (min-width: 480px) {
-      .stat-grid { grid-template-columns: repeat(4, 1fr); }
+      grid-template-columns: repeat(3, 1fr);
+      gap: .4rem .55rem;
+      margin-top: .5rem;
     }
     .stat { min-width: 0; }
     .stat-lbl {
       display: block;
-      font-size: .62rem;
+      font-size: .58rem;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: .04em;
-      margin-bottom: .1rem;
     }
     .stat-val {
       display: block;
-      font-size: .78rem;
+      font-size: .82rem;
       font-weight: 600;
       font-variant-numeric: tabular-nums;
-      margin-bottom: .2rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      margin: .05rem 0 .15rem;
     }
-    .stat[hidden] { display: none; }
     .bar.mini {
       height: 3px;
       background: #080b10;
@@ -112,32 +110,39 @@
     }
     .bar-fill.warn { background: var(--warn); }
     .bar-fill.danger { background: var(--danger); }
-    .chart-compact {
-      position: relative;
-      height: 72px;
-      margin: .45rem 0 .35rem;
+    .metrics-extra {
+      margin-top: .45rem;
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
     }
-    .chart-compact-temp-wrap .chart-compact {
-      height: 48px;
-      margin-top: .25rem;
-      margin-bottom: 0;
-    }
-    .chart-compact-temp-wrap[hidden] { display: none !important; }
     .temps-inline {
       display: flex;
       flex-wrap: wrap;
-      gap: .25rem .45rem;
-      margin-bottom: .35rem;
+      gap: .2rem .5rem;
       font-size: .65rem;
       color: var(--muted);
     }
-    .disks-compact { display: flex; flex-direction: column; gap: .3rem; }
-    .disk-row {
+    .temps-inline:empty { display: none; }
+    .disks-row {
+      display: flex;
+      flex-direction: column;
+      gap: .25rem;
+    }
+    @media (min-width: 520px) {
+      .disks-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: .35rem 1rem;
+      }
+      .disk-item { flex: 1 1 7.5rem; min-width: 6.5rem; max-width: 14rem; }
+    }
+    .disk-item {
       display: grid;
-      grid-template-columns: 3.5rem 2.2rem 1fr;
+      grid-template-columns: 2.8rem 2rem 1fr;
       align-items: center;
-      gap: .35rem;
-      font-size: .68rem;
+      gap: .3rem;
+      font-size: .65rem;
     }
     .disk-name {
       font-weight: 500;
@@ -150,33 +155,35 @@
       font-variant-numeric: tabular-nums;
       color: var(--muted);
     }
-    .panel-meta {
-      margin-top: .35rem;
-      font-size: .62rem;
+    .disks-row .na {
+      font-size: .65rem;
       color: var(--muted);
-      line-height: 1.3;
     }
+    .panel-meta {
+      margin: 0;
+      font-size: .6rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .panel-meta[hidden] { display: none; }
     a { color: var(--accent); }
   </style>
 </head>
 <body>
-  <nav class="page-nav" aria-label="Разделы">
-    <a href="/" data-page>Мониторинг</a>
-    <a href="/remote" data-page>Управление</a>
-    <a href="/chat" data-page>Чат</a>
-    <a href="/settings" data-page>Настройки</a>
-  </nav>
-  <div class="wrap">
-    <h1 id="host-title">Nout Panel</h1>
-    <p class="sub">Нагрузка, диски, температура · обновление ~1 с</p>
-
-    <div class="card metrics-compact">
-      <div class="metrics-head">
-        <h2>Нагрузка</h2>
+  <header class="site-header">
+    <nav class="page-nav" aria-label="Разделы">
+      <a href="/" data-page>Мониторинг</a>
+      <a href="/remote" data-page>Управление</a>
+      <a href="/chat" data-page>Чат</a>
+      <a href="/settings" data-page>Настройки</a>
+    </nav>
+    <div class="metrics-bar">
+      <div class="metrics-title-row">
+        <h1 id="host-title">Nout Panel</h1>
         <span class="badge" id="status">…</span>
         <span class="metrics-time" id="updated">—</span>
       </div>
-      <div class="stat-grid">
+      <div class="stat-row">
         <div class="stat">
           <span class="stat-lbl">CPU</span>
           <span class="stat-val" id="cpu-val">—</span>
@@ -193,22 +200,15 @@
           <div class="bar mini"><div class="bar-fill" id="load-bar" style="width:0%"></div></div>
         </div>
       </div>
-      <div class="chart-compact">
-        <canvas id="chart-load" aria-label="CPU, ОЗУ, load"></canvas>
+      <div class="metrics-extra">
+        <div id="temps" class="temps-inline"></div>
+        <div id="disks" class="disks-row">…</div>
+        <p class="panel-meta" id="panel-process" hidden></p>
       </div>
-      <div class="chart-compact-temp-wrap" id="temp-chart-wrap" hidden>
-        <div class="chart-compact">
-          <canvas id="chart-temp" aria-label="Температура"></canvas>
-        </div>
-      </div>
-      <div id="temps" class="temps-inline"></div>
-      <div id="disks" class="disks-compact">…</div>
-      <p class="panel-meta" id="panel-process" hidden></p>
     </div>
-  </div>
+  </header>
 
   <script src="/page-nav.js"></script>
-  <script src="/chart.umd.min.js"></script>
   <script>
     // Экранирование для безопасной вставки в HTML
     function esc(s) {
@@ -243,7 +243,7 @@
         return;
       }
       root.innerHTML = disks.map(d => `
-        <div class="disk-row" title="${esc(d.device)} · ${d.free_gb} ГБ свободно">
+        <div class="disk-item" title="${esc(d.device)} · ${d.free_gb} ГБ свободно">
           <span class="disk-name">${esc(d.mount)}</span>
           <span class="disk-pct">${d.percent}%</span>
           <div class="bar mini"><div class="bar-fill ${barClass(d.percent)}" style="width:${d.percent}%"></div></div>
@@ -254,10 +254,6 @@
     function renderTemps(block) {
       const root = document.getElementById('temps');
       const sensors = (block && block.available && block.sensors) ? block.sensors : [];
-      if (!sensors.length) {
-        root.innerHTML = '';
-        return;
-      }
       root.innerHTML = sensors.map(t =>
         `<span class="t">${esc(t.name)} ${esc(t.celsius)}°</span>`
       ).join('');
@@ -281,97 +277,6 @@
       const ram = p.rss_mb != null ? p.rss_mb + ' МБ RAM' : 'RAM —';
       const thr = p.threads != null ? ' · ' + p.threads + ' поток.' : '';
       el.textContent = 'Панель: PID ' + p.pid + ' · ' + ram + thr + ' · uptime ' + formatUptime(p.uptime_sec);
-    }
-
-    const chartColors = {
-      cpu: '#4da3ff',
-      ram: '#3dd68c',
-      load: '#f0b429',
-      temp: '#f56565',
-      grid: 'rgba(255,255,255,0.06)',
-      text: '#7d8fa8',
-    };
-
-    const chartDefaults = {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          ticks: { color: chartColors.text, maxTicksLimit: 6, maxRotation: 0 },
-          grid: { color: chartColors.grid },
-        },
-        y: {
-          min: 0,
-          max: 100,
-          ticks: { color: chartColors.text },
-          grid: { color: chartColors.grid },
-        },
-      },
-    };
-
-    let chartLoad = null;
-    let chartTemp = null;
-
-    function formatTime(iso) {
-      try {
-        return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      } catch (_) {
-        return '';
-      }
-    }
-
-    function initCharts() {
-      if (typeof Chart === 'undefined') return;
-      chartLoad = new Chart(document.getElementById('chart-load'), {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [
-            { label: 'CPU %', data: [], borderColor: chartColors.cpu, tension: 0.2, pointRadius: 0, borderWidth: 2 },
-            { label: 'ОЗУ %', data: [], borderColor: chartColors.ram, tension: 0.2, pointRadius: 0, borderWidth: 2 },
-            { label: 'Load %', data: [], borderColor: chartColors.load, tension: 0.2, pointRadius: 0, borderWidth: 2 },
-          ],
-        },
-        options: chartDefaults,
-      });
-      chartTemp = new Chart(document.getElementById('chart-temp'), {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [
-            { label: '°C', data: [], borderColor: chartColors.temp, tension: 0.2, pointRadius: 0, borderWidth: 2, fill: false },
-          ],
-        },
-        options: {
-          ...chartDefaults,
-          scales: {
-            x: chartDefaults.scales.x,
-            y: { min: 0, ticks: { color: chartColors.text }, grid: { color: chartColors.grid } },
-          },
-        },
-      });
-    }
-
-    function updateCharts(history) {
-      if (!chartLoad || !history || !history.length) return;
-      const labels = history.map(p => formatTime(p.ts));
-      chartLoad.data.labels = labels;
-      chartLoad.data.datasets[0].data = history.map(p => p.cpu);
-      chartLoad.data.datasets[1].data = history.map(p => p.ram);
-      chartLoad.data.datasets[2].data = history.map(p => p.load);
-      chartLoad.update('none');
-
-      const hasTemp = history.some(p => p.temp_max != null);
-      const tempWrap = document.getElementById('temp-chart-wrap');
-      if (tempWrap) tempWrap.hidden = !hasTemp;
-      if (hasTemp && chartTemp) {
-        chartTemp.data.labels = labels;
-        chartTemp.data.datasets[0].data = history.map(p => p.temp_max ?? null);
-        chartTemp.update('none');
-      }
     }
 
     let hostname = 'Nout Panel';
@@ -423,7 +328,6 @@
         renderDisks(d.disks);
         renderTemps(d.temperatures);
         renderPanel(d.panel);
-        updateCharts(d.history);
 
         const t = new Date(d.time_utc);
         document.getElementById('updated').textContent = t.toLocaleTimeString('ru-RU', {
@@ -435,7 +339,6 @@
       }
     }
 
-    initCharts();
     loadHost();
     tick();
     setInterval(tick, 1000);
