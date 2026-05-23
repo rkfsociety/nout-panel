@@ -1,8 +1,7 @@
 /* Блоки навигации и подсветка текущей страницы */
 (function () {
   var ITEMS = [
-    { href: '/', mod: 'monitor', title: 'Мониторинг', desc: 'CPU, RAM, диски' },
-    { href: '/remote', mod: 'remote', title: 'Управление', desc: 'Терминал, файлы' },
+    { href: '/', mod: 'monitor', title: 'Главная', desc: 'Метрики и управление' },
     { href: '/chat', mod: 'chat', title: 'Чат', desc: 'Cursor Agent' },
     { href: '/settings', mod: 'settings', title: 'Настройки', desc: 'Конфиг и логи' },
   ];
@@ -14,6 +13,8 @@
   }
 
   var current = normPath(location.pathname);
+  // /remote — старый URL, подсвечиваем главную
+  if (current === '/remote') current = '/';
 
   document.querySelectorAll('[data-nav-mount]').forEach(function (mount) {
     mount.setAttribute('aria-label', 'Разделы');

@@ -392,7 +392,7 @@ def main() -> None:
     start_collector()
     httpd = ThreadingHTTPServer((HOST, PORT), PanelHandler)
     _log.info(
-        "Nout panel %s: http://%s:%s/ (remote: /remote, chat: /chat)",
+        "Nout panel %s: http://%s:%s/ (chat: /chat, settings: /settings)",
         PANEL_VERSION,
         _local_ips()[0],
         PORT,

@@ -94,16 +94,6 @@
   min-height: 0;
 }
 
-.app-main-index {
-  padding: 1.25rem 1rem 2rem;
-}
-.nav-hint {
-  margin: 0;
-  font-size: .85rem;
-  color: #7d8fa8;
-  line-height: 1.5;
-}
-
 /* Десктоп: колонка слева */
 @media (min-width: 768px) {
   .app-shell {
@@ -129,9 +119,6 @@
     min-width: 0;
     max-width: none;
     width: 100%;
-  }
-  .app-main-index {
-    padding-top: 1rem;
   }
 }
 
