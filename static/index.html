@@ -150,6 +150,59 @@
       color: var(--muted);
       line-height: 1.4;
     }
+    /* Квадратные кнопки быстрого доступа */
+    .launcher {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (min-width: 520px) {
+      .launcher { grid-template-columns: repeat(4, 1fr); }
+    }
+    .launch-tile {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem;
+      padding: .5rem;
+      text-align: center;
+      text-decoration: none;
+      color: #fff;
+      font-size: .82rem;
+      font-weight: 600;
+      line-height: 1.2;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+      touch-action: manipulation;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .launch-tile:hover {
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .45);
+    }
+    .launch-tile:active { transform: scale(.96); }
+    .launch-icon {
+      font-size: 1.75rem;
+      line-height: 1;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .3));
+    }
+    .tile-chat {
+      background: linear-gradient(145deg, #1e40af 0%, #3b82f6 100%);
+    }
+    .tile-remote {
+      background: linear-gradient(145deg, #047857 0%, #14b8a6 100%);
+    }
+    .tile-settings {
+      background: linear-gradient(145deg, #b45309 0%, #fbbf24 100%);
+      color: #1a1208;
+    }
+    .tile-settings .launch-icon { filter: none; }
+    .tile-files {
+      background: linear-gradient(145deg, #6d28d9 0%, #a78bfa 100%);
+    }
     a { color: var(--accent); }
   </style>
 </head>
@@ -164,6 +217,25 @@
     <h1 id="host-title">Nout Panel</h1>
     <p class="sub">Тёмная панель · обновление каждую секунду · графики ~10 мин</p>
     <div class="badge" id="status">Подключение…</div>
+
+    <nav class="launcher" aria-label="Быстрый доступ">
+      <a href="/chat" class="launch-tile tile-chat">
+        <span class="launch-icon" aria-hidden="true">💬</span>
+        <span>Чат</span>
+      </a>
+      <a href="/remote" class="launch-tile tile-remote">
+        <span class="launch-icon" aria-hidden="true">🖥️</span>
+        <span>Управление</span>
+      </a>
+      <a href="/settings" class="launch-tile tile-settings">
+        <span class="launch-icon" aria-hidden="true">⚙️</span>
+        <span>Настройки</span>
+      </a>
+      <a href="/remote" class="launch-tile tile-files">
+        <span class="launch-icon" aria-hidden="true">📁</span>
+        <span>Файлы</span>
+      </a>
+    </nav>
 
     <div class="grid">
       <div class="card">
