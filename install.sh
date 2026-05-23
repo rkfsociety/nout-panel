@@ -18,11 +18,14 @@ if [[ ! -f "${CONFIG_LOCAL}" ]]; then
 		echo "Не удалось определить пользователя. Создайте config.local.env вручную из config.example.env" >&2
 		exit 1
 	fi
+	INSTALL_HOME="$(getent passwd "${INSTALL_USER}" | cut -d: -f6)"
+	INSTALL_HOME="${INSTALL_HOME:-/home/${INSTALL_USER}}"
 	cat >"${CONFIG_LOCAL}" <<EOF
 # Локальная конфигурация (не для Git)
 PANEL_USER=${INSTALL_USER}
 INSTALL_DIR=${SCRIPT_DIR}
 PANEL_PORT=8765
+PANEL_FILE_ROOTS=${INSTALL_HOME}:/mnt
 EOF
 	chown "${INSTALL_USER}:${INSTALL_USER}" "${CONFIG_LOCAL}"
 	chmod 600 "${CONFIG_LOCAL}"
@@ -68,5 +71,6 @@ IP="$(hostname -I | awk '{print $1}')"
 echo ""
 echo "Откройте в браузере (LAN):"
 echo "  http://${IP}:${PORT}/"
+echo "  http://${IP}:${PORT}/remote  — терминал, файлы, питание"
 echo ""
 echo "Логи: tail -f ${LOG_FILE}"

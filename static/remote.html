@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0a0d12">
+  <title>Управление — Nout Panel</title>
+  <link rel="stylesheet" href="/xterm.min.css">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0a0d12;
+      --card: #141b26;
+      --border: rgba(255,255,255,.06);
+      --accent: #4da3ff;
+      --text: #e8edf4;
+      --muted: #7d8fa8;
+      --danger: #f56565;
+      --warn: #f0b429;
+      --touch: 44px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 1rem;
+      padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+        max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    }
+    .wrap { max-width: 56rem; margin: 0 auto; }
+    h1 { margin: 0; font-size: 1.35rem; }
+    .nav { margin: .75rem 0 1rem; font-size: .9rem; }
+    .nav a { color: var(--accent); margin-right: 1rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .card h2 {
+      margin: 0 0 .75rem;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+    }
+    #terminal-wrap {
+      height: min(360px, 55vh);
+      min-height: 200px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      padding: 4px;
+    }
+    .btn {
+      min-height: var(--touch);
+      padding: 0 .9rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0d1118;
+      color: var(--text);
+      font-size: .9rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      margin: .25rem .35rem .25rem 0;
+    }
+    .btn.danger { border-color: rgba(245,101,101,.4); color: var(--danger); }
+    .btn.warn { border-color: rgba(240,180,41,.4); color: var(--warn); }
+    .btn:active { opacity: .85; }
+    .file-toolbar { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .5rem; align-items: center; }
+    .file-path { font-size: .8rem; color: var(--muted); word-break: break-all; flex: 1; min-width: 100%; }
+    .file-list { list-style: none; padding: 0; margin: 0; max-height: 280px; overflow: auto; }
+    .file-list li {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .45rem .35rem;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+    }
+    .file-list li button { min-height: 36px; min-width: auto; padding: 0 .5rem; font-size: .75rem; }
+    .file-list a { color: var(--accent); text-decoration: none; flex: 1; word-break: break-all; }
+    .screen-preview { max-width: 100%; border-radius: 8px; margin-top: .5rem; }
+    .hint { font-size: .8rem; color: var(--muted); margin-top: .5rem; }
+    input[type=file] { font-size: .85rem; color: var(--muted); max-width: 100%; }
+    @media (min-width: 640px) {
+      .file-path { min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Управление системой</h1>
+    <p class="nav">
+      <a href="/">← Мониторинг</a>
+      <span style="color:var(--muted)">Локальная сеть · без пароля</span>
+    </p>
+
+    <div class="card">
+      <h2>Терминал</h2>
+      <div id="terminal-wrap"></div>
+      <p class="hint">Shell как на ноуте. Для выхода закройте вкладку или нажмите «Новая сессия».</p>
+      <button type="button" class="btn" id="term-new">Новая сессия</button>
+    </div>
+
+    <div class="card">
+      <h2>Файлы</h2>
+      <div class="file-toolbar">
+        <button type="button" class="btn" id="file-up">↑ Вверх</button>
+        <button type="button" class="btn" id="file-refresh">Обновить</button>
+        <label class="btn" style="display:inline-flex;align-items:center">
+          Загрузить
+          <input type="file" id="file-input" hidden>
+        </label>
+      </div>
+      <div class="file-path" id="file-path">—</div>
+      <ul class="file-list" id="file-list"></ul>
+    </div>
+
+    <div class="card">
+      <h2>Питание</h2>
+      <button type="button" class="btn warn" data-power="suspend" data-confirm="SUSPEND">Спящий режим</button>
+      <button type="button" class="btn danger" data-power="reboot" data-confirm="REBOOT">Перезагрузка</button>
+      <button type="button" class="btn danger" data-power="shutdown" data-confirm="SHUTDOWN">Выключить</button>
+      <p class="hint">Нужно подтверждение в диалоге.</p>
+    </div>
+
+    <div class="card">
+      <h2>Экран</h2>
+      <button type="button" class="btn" id="screen-shot">Скриншот</button>
+      <p class="hint" id="screen-hint">—</p>
+      <img id="screen-img" class="screen-preview" alt="" hidden>
+    </div>
+  </div>
+
+  <script src="/xterm.min.js"></script>
+  <script>
+    // --- API без токена (доверенная LAN) ---
+    async function apiGet(url) {
+      const r = await fetch(url, { cache: 'no-store' });
+      const ct = r.headers.get('Content-Type') || '';
+      if (ct.includes('application/json')) return { json: await r.json(), blob: null, ok: r.ok };
+      return { json: null, blob: await r.blob(), ok: r.ok };
+    }
+    async function apiPost(url, body) {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      return r.json();
+    }
+
+    // --- Терминал (xterm.js + PTY по HTTP) ---
+    let termSession = null;
+    let pollOffset = 0;
+    let pollTimer = null;
+    const term = new Terminal({
+      cursorBlink: true,
+      fontSize: 14,
+      fontFamily: 'ui-monospace, "Cascadia Mono", "DejaVu Sans Mono", monospace',
+      theme: { background: '#000000', foreground: '#e8edf4', cursor: '#4da3ff' },
+    });
+    term.open(document.getElementById('terminal-wrap'));
+
+    function b64enc(bytes) {
+      let s = '';
+      bytes.forEach(b => { s += String.fromCharCode(b); });
+      return btoa(s);
+    }
+    function b64dec(str) {
+      const bin = atob(str);
+      const u8 = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      return u8;
+    }
+
+    async function startTerminal() {
+      if (termSession) {
+        await apiPost('/api/terminal/close', { session: termSession });
+      }
+      pollOffset = 0;
+      const d = await apiPost('/api/terminal/session', {});
+      if (!d.ok) { term.writeln('\r\nОшибка сессии'); return; }
+      termSession = d.session;
+      term.reset();
+      term.writeln('Подключено (сессия ' + termSession + ')');
+      fitTerm();
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(pollTerminal, 120);
+    }
+
+    function fitTerm() {
+      const cols = term.cols;
+      const rows = term.rows;
+      if (termSession) apiPost('/api/terminal/resize', { session: termSession, cols, rows });
+    }
+
+    async function pollTerminal() {
+      if (!termSession) return;
+      try {
+        const r = await fetch('/api/terminal/poll?session=' + encodeURIComponent(termSession) +
+          '&offset=' + pollOffset, { cache: 'no-store' });
+        const d = await r.json();
+        if (!d.ok) return;
+        pollOffset = d.offset;
+        if (d.data) term.write(b64dec(d.data));
+      } catch (_) { /* повтор на следующем тике */ }
+    }
+
+    term.onData(data => {
+      if (!termSession) return;
+      const bytes = new TextEncoder().encode(data);
+      apiPost('/api/terminal/write', { session: termSession, data: b64enc(bytes) });
+    });
+    window.addEventListener('resize', () => { term.focus(); fitTerm(); });
+    document.getElementById('term-new').addEventListener('click', startTerminal);
+    startTerminal();
+
+    // --- Файловый менеджер ---
+    let currentPath = null;
+
+    async function loadFiles(path) {
+      const url = path ? '/api/files/list?path=' + encodeURIComponent(path) : '/api/files/list';
+      const { json: d } = await apiGet(url);
+      const list = document.getElementById('file-list');
+      const pathEl = document.getElementById('file-path');
+      if (!d.ok) {
+        pathEl.textContent = d.error || 'Ошибка';
+        list.innerHTML = '';
+        return;
+      }
+      if (!path && d.roots) {
+        pathEl.textContent = 'Корни: ' + d.roots.map(r => r.label).join(', ');
+        list.innerHTML = d.roots.map(r =>
+          `<li><a href="#" data-path="${encodeURIComponent(r.path)}">📁 ${r.label}</a></li>`
+        ).join('');
+        bindFileLinks();
+        currentPath = null;
+        return;
+      }
+      currentPath = d.path;
+      pathEl.textContent = d.path;
+      let html = '';
+      if (d.parent) {
+        html += `<li><a href="#" data-path="${encodeURIComponent(d.parent)}">📁 ..</a></li>`;
+      }
+      d.entries.forEach(e => {
+        const icon = e.dir ? '📁' : '📄';
+        html += `<li>
+          <a href="#" data-path="${encodeURIComponent(e.path)}" data-dir="${e.dir}">${icon} ${e.name}</a>
+          ${e.dir ? '' : `<button type="button" class="btn" data-dl="${encodeURIComponent(e.path)}">↓</button>
+            <button type="button" class="btn danger" data-del="${encodeURIComponent(e.path)}">✕</button>`}
+        </li>`;
+      });
+      list.innerHTML = html || '<li style="color:var(--muted)">Пусто</li>';
+      bindFileLinks();
+    }
+
+    function bindFileLinks() {
+      document.querySelectorAll('#file-list a[data-path]').forEach(a => {
+        a.onclick = ev => {
+          ev.preventDefault();
+          const p = decodeURIComponent(a.dataset.path);
+          const isDir = a.dataset.dir === 'true' || a.textContent.includes('📁');
+          if (isDir || a.textContent.includes('📁')) loadFiles(p);
+        };
+      });
+      document.querySelectorAll('[data-dl]').forEach(btn => {
+        btn.onclick = () => {
+          window.open('/api/files/download?path=' + btn.dataset.dl, '_blank');
+        };
+      });
+      document.querySelectorAll('[data-del]').forEach(btn => {
+        btn.onclick = async () => {
+          const p = decodeURIComponent(btn.dataset.del);
+          if (!confirm('Удалить?\n' + p)) return;
+          const d = await apiPost('/api/files/delete', { path: p });
+          if (d.ok) loadFiles(currentPath);
+          else alert(d.error || 'Ошибка');
+        };
+      });
+    }
+
+    document.getElementById('file-up').onclick = () => {
+      if (!currentPath) return;
+      const parent = currentPath.replace(/\/[^/]+$/, '') || null;
+      loadFiles(parent);
+    };
+    document.getElementById('file-refresh').onclick = () => loadFiles(currentPath);
+    document.getElementById('file-input').onchange = async ev => {
+      const file = ev.target.files[0];
+      if (!file || !currentPath) { alert('Откройте каталог для загрузки'); return; }
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch('/api/files/upload?path=' + encodeURIComponent(currentPath), {
+        method: 'POST',
+        body: fd,
+      });
+      const d = await r.json();
+      if (d.ok) loadFiles(currentPath);
+      else alert(d.error || 'Ошибка загрузки');
+      ev.target.value = '';
+    };
+    loadFiles(null);
+
+    // --- Питание ---
+    document.querySelectorAll('[data-power]').forEach(btn => {
+      btn.onclick = async () => {
+        const action = btn.dataset.power;
+        const word = btn.dataset.confirm;
+        const labels = { suspend: 'спящий режим', reboot: 'перезагрузку', shutdown: 'выключение' };
+        if (!confirm('Подтвердите ' + labels[action] + '.\n\nВведите в следующем окне: ' + word)) return;
+        const typed = prompt('Введите ' + word + ' для подтверждения:');
+        if (typed !== word) { alert('Отменено'); return; }
+        const d = await apiPost('/api/power', { action, confirm: word });
+        if (!d.ok) alert(d.error || 'Не удалось');
+      };
+    });
+
+    // --- Скриншот ---
+    async function loadScreenInfo() {
+      const { json: d } = await apiGet('/api/screen/info');
+      document.getElementById('screen-hint').textContent = d.available
+        ? 'Доступно: ' + (d.tools || []).join(', ')
+        : (d.hint || 'N/A');
+    }
+    document.getElementById('screen-shot').onclick = async () => {
+      const img = document.getElementById('screen-img');
+      const { blob, ok } = await apiGet('/api/screen/capture?' + Date.now());
+      if (!ok) { alert('Скриншот недоступен'); return; }
+      img.src = URL.createObjectURL(blob);
+      img.hidden = false;
+    };
+    loadScreenInfo();
+  </script>
+</body>
+</html>
