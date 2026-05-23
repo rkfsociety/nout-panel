@@ -67,7 +67,8 @@
       const r = await fetch('/api/panel/sudo', { cache: 'no-store' });
       const d = await r.json();
       if (d.configured) {
-        line.textContent = 'Пароль sudo сохранён в памяти панели';
+        const where = d.path ? ' (' + d.path + ')' : '';
+        line.textContent = 'Пароль sudo сохранён локально' + where;
         line.className = 'status-line ok';
       } else {
         line.textContent = 'Пароль не задан — перезапуск и «Сохранить и применить» могут не сработать';

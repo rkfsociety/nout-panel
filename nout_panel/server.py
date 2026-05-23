@@ -404,6 +404,7 @@ class PanelHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
+    panel_sudo.load_from_disk()
     start_collector()
     httpd = ThreadingHTTPServer((HOST, PORT), PanelHandler)
     _log.info(

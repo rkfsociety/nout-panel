@@ -7,6 +7,9 @@ __pycache__/
 # Локальная конфигурация (IP, пользователь, пути) — не коммитить
 config/local.env
 config.local.env
+
+# Пароль sudo для веб-панели (если лежит в каталоге репозитория)
+**/sudo.secret
 .env
 *.local
 

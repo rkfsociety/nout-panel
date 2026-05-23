@@ -127,8 +127,8 @@
         <label for="sudo-password">Пароль пользователя Linux (для systemctl и конфига)</label>
         <input type="password" id="sudo-password" autocomplete="current-password" placeholder="••••••••">
       </div>
-      <p class="hint" style="font-size:.8rem;color:var(--muted);margin:.35rem 0 .5rem">
-        Хранится только в памяти процесса панели до её перезапуска. Не записывается в файл.
+      <p class="hint" style="margin:.35rem 0 .5rem">
+        Сохраняется в <code>~/.nout-panel/sudo.secret</code> (права 600), переживает перезапуск панели. Не попадает в Git.
       </p>
       <div class="row-actions">
         <button type="button" class="btn-set primary" id="btn-sudo-save">Сохранить пароль</button>
