@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0a0d12">
+  <title>Чат с агентом — Nout Panel</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0a0d12;
+      --card: #141b26;
+      --border: rgba(255,255,255,.08);
+      --accent: #4da3ff;
+      --text: #e8edf4;
+      --muted: #7d8fa8;
+      --user: #1e3a5f;
+      --bot: #1a2332;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    header {
+      padding: .75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    header h1 { margin: 0; font-size: 1.1rem; }
+    header p { margin: .25rem 0 0; font-size: .8rem; color: var(--muted); }
+    header a { color: var(--accent); font-size: .85rem; }
+    #status-banner {
+      padding: .6rem 1rem;
+      background: rgba(240,180,41,.12);
+      color: #f0b429;
+      font-size: .85rem;
+      display: none;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: .65rem;
+    }
+    .msg {
+      max-width: 92%;
+      padding: .65rem .85rem;
+      border-radius: 14px;
+      font-size: .92rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .msg.user { align-self: flex-end; background: var(--user); }
+    .msg.bot { align-self: flex-start; background: var(--bot); border: 1px solid var(--border); }
+    .msg.thinking { color: var(--muted); font-style: italic; }
+    footer {
+      padding: .65rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: .5rem;
+      flex-shrink: 0;
+      background: var(--card);
+    }
+    #input {
+      flex: 1;
+      min-height: 44px;
+      max-height: 120px;
+      padding: .55rem .75rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0a0e14;
+      color: var(--text);
+      font: inherit;
+      resize: none;
+    }
+    #send {
+      min-width: 44px;
+      min-height: 44px;
+      border: none;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #send:disabled { opacity: .5; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Чат с Cursor Agent</h1>
+    <p id="workspace-hint">Рабочая папка: —</p>
+    <a href="/">← Мониторинг</a> · <a href="/remote">Управление</a>
+  </header>
+  <div id="status-banner"></div>
+  <div id="messages"></div>
+  <footer>
+    <textarea id="input" rows="1" placeholder="Напишите задачу для ноута…"></textarea>
+    <button type="button" id="send">→</button>
+  </footer>
+
+  <script>
+  // Чат через cursor agent на ноуте (не пароль панели)
+  const messagesEl = document.getElementById('messages');
+  const inputEl = document.getElementById('input');
+  const sendBtn = document.getElementById('send');
+  const banner = document.getElementById('status-banner');
+  let sessionId = localStorage.getItem('nout_chat_session') || '';
+  let busy = false;
+
+  function addMsg(text, role) {
+    const d = document.createElement('div');
+    d.className = 'msg ' + role;
+    d.textContent = text;
+    messagesEl.appendChild(d);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return d;
+  }
+
+  async function api(method, url, body) {
+    const opt = { method, cache: 'no-store' };
+    if (body) {
+      opt.headers = { 'Content-Type': 'application/json' };
+      opt.body = JSON.stringify(body);
+    }
+    const r = await fetch(url, opt);
+    return r.json();
+  }
+
+  async function checkStatus() {
+    const s = await api('GET', '/api/chat/status');
+    const bannerText = document.getElementById('workspace-hint');
+    if (s.workspace) bannerText.textContent = 'Папка агента: ' + s.workspace;
+    if (!s.available) {
+      banner.style.display = 'block';
+      banner.textContent = s.hint || 'Сначала на ноуте: cursor agent login';
+      sendBtn.disabled = true;
+      return false;
+    }
+    banner.style.display = 'none';
+    sendBtn.disabled = false;
+    return true;
+  }
+
+  async function ensureSession() {
+    if (sessionId) return sessionId;
+    const d = await api('POST', '/api/chat/session', { title: 'Телефон' });
+    if (!d.ok) throw new Error(d.error || 'session');
+    sessionId = d.session_id;
+    localStorage.setItem('nout_chat_session', sessionId);
+    return sessionId;
+  }
+
+  async function pollJob(jobId, botEl) {
+    let offset = 0;
+    let acc = '';
+    while (true) {
+      const p = await api('GET', '/api/chat/poll?job=' + encodeURIComponent(jobId) + '&offset=' + offset);
+      if (!p.ok) break;
+      if (p.chunk) {
+        acc += p.chunk;
+        botEl.textContent = acc;
+        botEl.classList.remove('thinking');
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+      offset = p.offset;
+      if (p.done) {
+        if (p.error && !acc.trim()) botEl.textContent = 'Ошибка: ' + p.error;
+        break;
+      }
+      await new Promise(r => setTimeout(r, 400));
+    }
+  }
+
+  async function send() {
+    const text = inputEl.value.trim();
+    if (!text || busy) return;
+    if (!(await checkStatus())) return;
+    busy = true;
+    sendBtn.disabled = true;
+    inputEl.value = '';
+    addMsg(text, 'user');
+    const botEl = addMsg('Думаю…', 'bot thinking');
+    try {
+      await ensureSession();
+      const d = await api('POST', '/api/chat/send', { session_id: sessionId, message: text });
+      if (!d.ok) throw new Error(d.error || 'send');
+      await pollJob(d.job_id, botEl);
+    } catch (e) {
+      botEl.textContent = 'Ошибка: ' + e.message;
+      botEl.classList.remove('thinking');
+    }
+    busy = false;
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+
+  sendBtn.onclick = send;
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+
+  addMsg('Привет. Пишите задачу — на ноуте ответит Cursor Agent (те же инструменты: файлы, команды).', 'bot');
+  checkStatus();
+  </script>
+</body>
+</html>

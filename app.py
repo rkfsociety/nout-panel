@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+import agent_chat
 import file_manager
 import power_control
 import screen_capture
@@ -28,7 +29,7 @@ _log = setup_logging("nout-panel")
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("PANEL_PORT", "8765"))
 STATIC_DIR = Path(__file__).resolve().parent / "static"
-PANEL_VERSION = "0.4.0"
+PANEL_VERSION = "0.5.0"
 
 
 def _local_ips() -> list[str]:
@@ -59,6 +60,7 @@ def _status_payload() -> dict[str, Any]:
         "platform": platform.platform(),
         "panel_version": PANEL_VERSION,
         "remote": True,
+        "chat": True,
     }
 
 
@@ -182,6 +184,25 @@ class PanelHandler(BaseHTTPRequestHandler):
         if path == "/api/screen/info":
             self._send_json(screen_capture.capture_info())
             return
+        if path == "/api/chat/status":
+            self._send_json(agent_chat.agent_status())
+            return
+        if path == "/api/chat/sessions":
+            self._send_json(agent_chat.list_sessions())
+            return
+        if path == "/api/chat/poll":
+            jid = self._q1("job")
+            offset = int(self._q1("offset") or "0")
+            if not jid:
+                self._send_json({"ok": False, "error": "job required"}, 400)
+                return
+            out = agent_chat.poll_job(jid, offset)
+            if out is None:
+                self._send_json({"ok": False, "error": "job not found"}, 404)
+                return
+            self._send_json(out)
+            return
+
         if path == "/api/screen/capture":
             got = screen_capture.capture_png()
             if not got:
@@ -196,6 +217,8 @@ class PanelHandler(BaseHTTPRequestHandler):
             "/index.html": ("index.html", "text/html; charset=utf-8"),
             "/remote": ("remote.html", "text/html; charset=utf-8"),
             "/remote.html": ("remote.html", "text/html; charset=utf-8"),
+            "/chat": ("chat.html", "text/html; charset=utf-8"),
+            "/chat.html": ("chat.html", "text/html; charset=utf-8"),
             "/chart.umd.min.js": ("chart.umd.min.js", "application/javascript; charset=utf-8"),
             "/xterm.min.js": ("xterm.min.js", "application/javascript; charset=utf-8"),
             "/xterm.min.css": ("xterm.min.css", "text/css; charset=utf-8"),
@@ -270,6 +293,26 @@ class PanelHandler(BaseHTTPRequestHandler):
                 self._send_json(file_manager.delete_path(body.get("path", "")))
                 return
 
+            if path == "/api/chat/session":
+                body = self._read_json()
+                self._send_json(agent_chat.create_session(body.get("title", "Чат с телефона")))
+                return
+
+            if path == "/api/chat/send":
+                body = self._read_json()
+                sid = body.get("session_id", "")
+                if not sid:
+                    created = agent_chat.create_session()
+                    if not created.get("ok"):
+                        self._send_json(created, 400)
+                        return
+                    sid = created["session_id"]
+                sent = agent_chat.send_message(sid, body.get("message", ""))
+                if sent.get("ok"):
+                    sent["session_id"] = sid
+                self._send_json(sent)
+                return
+
             if path == "/api/power":
                 body = self._read_json()
                 self._send_json(
@@ -288,7 +331,12 @@ class PanelHandler(BaseHTTPRequestHandler):
 def main() -> None:
     start_collector()
     httpd = ThreadingHTTPServer((HOST, PORT), PanelHandler)
-    _log.info("Nout panel %s: http://%s:%s/ (remote: /remote)", PANEL_VERSION, _local_ips()[0], PORT)
+    _log.info(
+        "Nout panel %s: http://%s:%s/ (remote: /remote, chat: /chat)",
+        PANEL_VERSION,
+        _local_ips()[0],
+        PORT,
+    )
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

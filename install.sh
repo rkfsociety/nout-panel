@@ -26,6 +26,7 @@ PANEL_USER=${INSTALL_USER}
 INSTALL_DIR=${SCRIPT_DIR}
 PANEL_PORT=8765
 PANEL_FILE_ROOTS=${INSTALL_HOME}:/mnt
+PANEL_AGENT_WORKSPACE=$(dirname "${SCRIPT_DIR}")
 EOF
 	chown "${INSTALL_USER}:${INSTALL_USER}" "${CONFIG_LOCAL}"
 	chmod 600 "${CONFIG_LOCAL}"
@@ -72,5 +73,7 @@ echo ""
 echo "Откройте в браузере (LAN):"
 echo "  http://${IP}:${PORT}/"
 echo "  http://${IP}:${PORT}/remote  — терминал, файлы, питание"
+echo "  http://${IP}:${PORT}/chat     — чат с Cursor Agent"
 echo ""
+echo "Чат: один раз на ноуте выполните: cursor agent login"
 echo "Логи: tail -f ${LOG_FILE}"
