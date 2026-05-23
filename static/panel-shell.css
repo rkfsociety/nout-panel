@@ -29,6 +29,8 @@ body.page-shell {
   background: var(--shell-bg);
   border-bottom: 1px solid var(--shell-border);
   flex-shrink: 0;
+  /* +2pt ко всем размерам шрифта в шапке */
+  --header-font-plus: 2pt;
 }
 
 .metrics-bar {
@@ -55,7 +57,7 @@ body.page-shell {
 
 .metrics-brand h1 {
   margin: 0;
-  font-size: 0.88rem;
+  font-size: calc(0.88rem + var(--header-font-plus));
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -69,7 +71,7 @@ body.page-shell {
   color: var(--shell-ok);
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
-  font-size: 0.58rem;
+  font-size: calc(0.58rem + var(--header-font-plus));
   font-weight: 500;
   white-space: nowrap;
 }
@@ -80,7 +82,7 @@ body.page-shell {
 }
 
 .metrics-time {
-  font-size: 0.62rem;
+  font-size: calc(0.62rem + var(--header-font-plus));
   color: var(--shell-muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -105,7 +107,7 @@ body.page-shell {
 }
 
 .stat-lbl {
-  font-size: 0.55rem;
+  font-size: calc(0.55rem + var(--header-font-plus));
   color: var(--shell-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -114,7 +116,7 @@ body.page-shell {
 }
 
 .stat-val {
-  font-size: 0.72rem;
+  font-size: calc(0.72rem + var(--header-font-plus));
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   width: 2.1rem;
@@ -161,7 +163,7 @@ body.page-shell {
   display: flex;
   flex-wrap: wrap;
   gap: 0.15rem 0.45rem;
-  font-size: 0.6rem;
+  font-size: calc(0.6rem + var(--header-font-plus));
   color: var(--shell-muted);
 }
 
@@ -179,7 +181,7 @@ body.page-shell {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.6rem;
+  font-size: calc(0.6rem + var(--header-font-plus));
   min-width: 0;
 }
 
@@ -209,13 +211,13 @@ body.page-shell {
 }
 
 .disks-row .na {
-  font-size: 0.6rem;
+  font-size: calc(0.6rem + var(--header-font-plus));
   color: var(--shell-muted);
 }
 
 .panel-meta {
   margin: 0;
-  font-size: 0.58rem;
+  font-size: calc(0.58rem + var(--header-font-plus));
   color: var(--shell-muted);
   white-space: nowrap;
   overflow: hidden;
