@@ -144,6 +144,12 @@
       text-align: center;
       line-height: 1.6;
     }
+    .panel-meta {
+      margin-top: .75rem;
+      font-size: .72rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
     a { color: var(--accent); }
   </style>
 </head>
@@ -202,6 +208,7 @@
           <div class="bar"><div class="bar-fill" id="battery-bar" style="width:0%"></div></div>
         </div>
         <div id="temps" class="temps"></div>
+        <p class="panel-meta" id="panel-process" hidden></p>
       </div>
 
       <div class="card">
@@ -305,6 +312,26 @@
           <button type="button" class="btn-copy" data-copy="${esc(label)}" style="min-height:32px;min-width:auto;padding:0 .5rem" aria-label="Копировать">⎘</button></span>`;
       }).join('');
       bindCopyButtons();
+    }
+
+    function formatUptime(sec) {
+      if (sec == null || sec < 0) return '—';
+      if (sec >= 86400) return Math.floor(sec / 86400) + ' д ' + Math.floor((sec % 86400) / 3600) + ' ч';
+      if (sec >= 3600) return Math.floor(sec / 3600) + ' ч ' + Math.floor((sec % 3600) / 60) + ' м';
+      if (sec >= 60) return Math.floor(sec / 60) + ' м';
+      return Math.round(sec) + ' с';
+    }
+
+    function renderPanel(p) {
+      const el = document.getElementById('panel-process');
+      if (!p || !p.available) {
+        el.hidden = true;
+        return;
+      }
+      el.hidden = false;
+      const ram = p.rss_mb != null ? p.rss_mb + ' МБ RAM' : 'RAM —';
+      const thr = p.threads != null ? ' · ' + p.threads + ' поток.' : '';
+      el.textContent = 'Панель: PID ' + p.pid + ' · ' + ram + thr + ' · uptime ' + formatUptime(p.uptime_sec);
     }
 
     function renderBattery(bat) {
@@ -473,6 +500,7 @@
         renderDisks(d.disks);
         renderTemps(d.temperatures);
         renderBattery(d.battery);
+        renderPanel(d.panel);
         updateCharts(d.history);
 
         const t = new Date(d.time_utc);

@@ -9,7 +9,7 @@
 - Состояние смонтированных дисков
 - Температуры (если доступны в `/sys/class/thermal`)
 - Удобно с телефона в той же Wi‑Fi сети
-- JSON API: `/api/status`, `/api/metrics` (в metrics есть поле `history`)
+- JSON API: `/api/status`, `/api/metrics` (в metrics есть `history` и `panel` — PID, RAM, uptime процесса панели)
 - **Удалённое управление** (`/remote`): терминал, файлы в `~/` и `/mnt/`, питание, скриншот — **без пароля**, только для доверенной LAN
 
 ## Требования

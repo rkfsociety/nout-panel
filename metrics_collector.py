@@ -78,8 +78,12 @@ _PROC_STAT = Path("/proc/stat")
 _PROC_MEMINFO = Path("/proc/meminfo")
 _PROC_LOADAVG = Path("/proc/loadavg")
 _PROC_MOUNTS = Path("/proc/mounts")
+_PROC_SELF_STATUS = Path("/proc/self/status")
 _SYS_THERMAL = Path("/sys/class/thermal")
 _SYS_POWER = Path("/sys/class/power_supply")
+
+# Время старта процесса панели (для uptime)
+_PROCESS_START = time.time()
 
 # Ошибки сбора метрик — ловим явно, без except Exception
 _COLLECTOR_ERRORS = (
@@ -161,6 +165,42 @@ def _temperatures_na() -> dict[str, Any]:
 def _battery_na() -> dict[str, Any]:
     """Батарея отсутствует или недоступна — N/A в UI."""
     return {"available": False, "percent": None, "status": "na", "status_label": "N/A"}
+
+
+def _panel_process_na() -> dict[str, Any]:
+    """Метрики процесса панели недоступны."""
+    return {
+        "available": False,
+        "pid": None,
+        "rss_mb": None,
+        "threads": None,
+        "uptime_sec": None,
+    }
+
+
+def _panel_process() -> dict[str, Any]:
+    """Минимальный мониторинг самого процесса nout-panel (/proc/self/status)."""
+    text = _read_proc_text(_PROC_SELF_STATUS)
+    if not text:
+        return _panel_process_na()
+    rss_kb: int | None = None
+    threads: int | None = None
+    for line in text.splitlines():
+        if line.startswith("VmRSS:"):
+            parts = line.split()
+            if len(parts) >= 2:
+                rss_kb = _parse_int(parts[1], None)
+        elif line.startswith("Threads:"):
+            parts = line.split()
+            if len(parts) >= 2:
+                threads = _parse_int(parts[1], None)
+    return {
+        "available": True,
+        "pid": os.getpid(),
+        "rss_mb": round(rss_kb / 1024, 1) if rss_kb is not None else None,
+        "threads": threads,
+        "uptime_sec": round(time.time() - _PROCESS_START, 1),
+    }
 
 
 def _read_cpu_jiffies() -> tuple[int, int] | None:
@@ -419,6 +459,7 @@ def _collect_once() -> dict[str, Any]:
     temperatures = _safe("temperatures", _temperatures, _temperatures_na())
     battery = _safe("battery", _battery, _battery_na())
     disks = _safe("disks", _disks, [])
+    panel = _safe("panel", _panel_process, _panel_process_na())
     return {
         "ok": True,
         "time_utc": datetime.now(timezone.utc).isoformat(),
@@ -429,6 +470,7 @@ def _collect_once() -> dict[str, Any]:
         "temperatures": temperatures,
         "battery": battery,
         "disks": disks,
+        "panel": panel,
     }
 
 
